@@ -5,7 +5,7 @@ import { tl } from "@/lib/utils";
 import { toggleActive } from "../../actions";
 
 const PER = 25;
-type Row = RowDataPacket & { id: number; name: string; brand: string | null; category: string | null; price: string; in_stock: number; active: number };
+type Row = RowDataPacket & { id: number; name: string; brand: string | null; category: string | null; image_url: string | null; price: string; in_stock: number; active: number };
 
 export default async function AdminProducts({ searchParams }: { searchParams: Promise<{ q?: string; page?: string }> }) {
   const { q = "", page = "1" } = await searchParams;
@@ -21,7 +21,7 @@ export default async function AdminProducts({ searchParams }: { searchParams: Pr
     const [[c]] = await db().query<RowDataPacket[]>(`SELECT COUNT(*) AS n FROM products ${where}`, args);
     total = c.n;
     [rows] = await db().query<Row[]>(
-      `SELECT id, name, brand, category, price, in_stock, active FROM products ${where} ORDER BY id DESC LIMIT ? OFFSET ?`,
+      `SELECT id, name, brand, category, image_url, price, in_stock, active FROM products ${where} ORDER BY id DESC LIMIT ? OFFSET ?`,
       [...args, PER, (p - 1) * PER]
     );
   } catch (e) {
@@ -54,11 +54,19 @@ export default async function AdminProducts({ searchParams }: { searchParams: Pr
       <div className="overflow-x-auto">
         <table className="w-full text-left text-sm">
           <thead className="text-xs uppercase tracking-wide text-muted">
-            <tr><th className="py-3 pr-4">Ürün</th><th className="pr-4">Kategori</th><th className="pr-4">Fiyat</th><th className="pr-4">Stok</th><th className="pr-4">Durum</th><th /></tr>
+            <tr><th className="w-14 py-3 pr-3" /><th className="py-3 pr-4">Ürün</th><th className="pr-4">Kategori</th><th className="pr-4">Fiyat</th><th className="pr-4">Stok</th><th className="pr-4">Durum</th><th /></tr>
           </thead>
           <tbody className="divide-y divide-border">
             {rows.map((r) => (
               <tr key={r.id} className={r.active ? "" : "text-muted"}>
+                <td className="py-3 pr-3">
+                  {r.image_url ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={r.image_url} alt="" className="h-10 w-10 rounded-lg bg-surface object-contain" />
+                  ) : (
+                    <div className="h-10 w-10 rounded-lg bg-surface" />
+                  )}
+                </td>
                 <td className="max-w-md py-3 pr-4"><p className="line-clamp-1 font-semibold">{r.name}</p><p className="text-xs text-muted">{r.brand}</p></td>
                 <td className="pr-4">{r.category}</td>
                 <td className="whitespace-nowrap pr-4 font-semibold">{tl(Number(r.price))}</td>

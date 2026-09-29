@@ -10,7 +10,8 @@
     "db:init": "node --env-file=.env.local scripts/db-init.mjs",
     "db:import": "node --env-file=.env.local scripts/db-import.mjs",
     "admin:create": "node --env-file=.env.local scripts/admin-create.mjs",
-    "scrape": "node scripts/scrape.mjs"
+    "scrape": "node scripts/scrape.mjs",
+    "package": "bash scripts/package.sh"
   },
   "dependencies": {
     "@gsap/react": "^2.1.2",

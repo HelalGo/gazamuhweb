@@ -15,9 +15,9 @@ function Label({ text, children }: { text: string; children: React.ReactNode }) 
   );
 }
 
-export default async function EditProduct({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ saved?: string; error?: string }> }) {
+export default async function EditProduct({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ saved?: string; error?: string; imgerror?: string }> }) {
   const { id } = await params;
-  const { saved, error } = await searchParams;
+  const { saved, error, imgerror } = await searchParams;
   const isNew = id === "new";
   let r: RowDataPacket = {} as RowDataPacket;
   if (!isNew) {
@@ -34,6 +34,7 @@ export default async function EditProduct({ params, searchParams }: { params: Pr
       <Link href="/admin/products" className="text-sm text-muted hover:text-foreground">← Ürünler</Link>
       <h1 className="mb-6 mt-2 text-2xl font-extrabold">{isNew ? "Yeni Ürün" : "Ürünü Düzenle"}</h1>
       {saved && <p role="status" className="mb-6 rounded-xl bg-green-50 px-4 py-3 text-sm font-semibold text-green-700">Kaydedildi.</p>}
+      {imgerror && <p role="alert" className="mb-6 rounded-xl bg-red-50 px-4 py-3 text-sm font-semibold text-red-700">Görsel yüklenemedi: {imgerror}</p>}
       {error && <p role="alert" className="mb-6 rounded-xl bg-red-50 px-4 py-3 text-sm font-semibold text-red-700">Ürün adı ve fiyat zorunlu.</p>}
 
       <form action={saveProduct} className="space-y-5">
@@ -52,7 +53,19 @@ export default async function EditProduct({ params, searchParams }: { params: Pr
         </div>
         <Label text="Açıklama"><textarea name="description" rows={7} defaultValue={r.description ?? ""} className={field} /></Label>
         <Label text="Teknik özellikler (her satır: Özellik: Değer)"><textarea name="specs" rows={6} defaultValue={specText} className={field + " font-mono"} /></Label>
-        <Label text="Görsel adresi (URL)"><input name="image_url" defaultValue={r.image_url ?? ""} placeholder="https://…" className={field} /></Label>
+        <div className="space-y-3">
+          <p className="text-sm font-semibold">Ürün görseli</p>
+          {r.image_url && (
+            <div className="flex items-center gap-4">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={r.image_url} alt="" className="h-24 w-24 rounded-xl bg-surface object-contain" />
+              <label className="flex items-center gap-2 text-sm text-muted"><input type="checkbox" name="remove_image" className="h-4 w-4 accent-[#1a3e85]" /> Görseli kaldır</label>
+            </div>
+          )}
+          <input type="file" name="image_file" accept="image/jpeg,image/png,image/webp" className="block w-full text-sm file:mr-4 file:rounded-full file:border-0 file:bg-surface file:px-4 file:py-2 file:text-sm file:font-semibold hover:file:bg-surface-alt" />
+          <p className="text-xs text-muted">JPG, PNG veya WebP · en fazla 5 MB · kare (1:1) görseller en iyi sonucu verir.</p>
+          <Label text="veya görsel adresi (URL)"><input name="image_url" defaultValue={r.image_url ?? ""} placeholder="https://…" className={field} /></Label>
+        </div>
         <div className="flex gap-8 text-sm font-semibold">
           <label className="flex items-center gap-2"><input type="checkbox" name="in_stock" defaultChecked={isNew ? true : !!r.in_stock} className="h-4 w-4 accent-[#1a3e85]" /> Stokta</label>
           <label className="flex items-center gap-2"><input type="checkbox" name="active" defaultChecked={isNew ? true : !!r.active} className="h-4 w-4 accent-[#1a3e85]" /> Sitede yayınla</label>

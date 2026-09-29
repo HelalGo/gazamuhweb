@@ -8,6 +8,8 @@ const nextConfig: NextConfig = {
   output: "standalone",
   // Görsel optimizasyonu sharp (işletim sistemine özel) ister; hosting'de sorun çıkmasın diye kapalı
   images: { unoptimized: true },
+  // Admin panelinden toplu görsel yüklemek için
+  experimental: { serverActions: { bodySizeLimit: "60mb" } },
 };
 
 export default nextConfig;
