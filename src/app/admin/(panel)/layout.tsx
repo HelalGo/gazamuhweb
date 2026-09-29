@@ -14,6 +14,8 @@ export default async function PanelLayout({ children }: { children: React.ReactN
           <Link href="/admin/products"><Image src="/brand/logo.png" alt="GAZ-A" width={242} height={58} className="h-9 w-auto" /></Link>
           <nav className="flex gap-1 text-sm font-semibold">
             <Link href="/admin/products" className="rounded-lg px-3 py-2 hover:bg-white">Ürünler</Link>
+            <Link href="/admin/orders" className="rounded-lg px-3 py-2 hover:bg-white">Siparişler</Link>
+            <Link href="/admin/reviews" className="rounded-lg px-3 py-2 hover:bg-white">Yorumlar</Link>
             <Link href="/admin/slider" className="rounded-lg px-3 py-2 hover:bg-white">Slider</Link>
             <Link href="/admin/vitrin" className="rounded-lg px-3 py-2 hover:bg-white">Vitrin</Link>
             <Link href="/admin/kampanyalar" className="rounded-lg px-3 py-2 hover:bg-white">Kampanyalar</Link>

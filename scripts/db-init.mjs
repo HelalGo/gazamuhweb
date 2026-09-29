@@ -88,5 +88,52 @@ await c.query(`CREATE TABLE IF NOT EXISTS campaign_blocks (
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 ) CHARACTER SET utf8mb4`);
 
-console.log("Tablolar hazır: products, admins, users, hero_slides, showcase_tiles, campaign_blocks");
+await c.query(`CREATE TABLE IF NOT EXISTS orders (
+  id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  user_id INT UNSIGNED NOT NULL,
+  status VARCHAR(20) NOT NULL DEFAULT 'pending',
+  total DECIMAL(12,2) NOT NULL,
+  full_name VARCHAR(160) NOT NULL,
+  phone VARCHAR(30) NOT NULL,
+  email VARCHAR(190) NOT NULL,
+  city VARCHAR(80) NOT NULL,
+  address TEXT NOT NULL,
+  note TEXT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  INDEX idx_user (user_id),
+  INDEX idx_status (status)
+) CHARACTER SET utf8mb4`);
+
+await c.query(`CREATE TABLE IF NOT EXISTS order_items (
+  id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  order_id INT UNSIGNED NOT NULL,
+  product_id INT UNSIGNED NULL,
+  name VARCHAR(255) NOT NULL,
+  price DECIMAL(12,2) NOT NULL,
+  qty INT UNSIGNED NOT NULL,
+  INDEX idx_order (order_id),
+  INDEX idx_product (product_id)
+) CHARACTER SET utf8mb4`);
+
+await c.query(`CREATE TABLE IF NOT EXISTS reviews (
+  id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  product_id INT UNSIGNED NOT NULL,
+  user_id INT UNSIGNED NOT NULL,
+  rating TINYINT UNSIGNED NOT NULL,
+  comment TEXT NOT NULL,
+  active TINYINT(1) NOT NULL DEFAULT 1,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE KEY uq_review (product_id, user_id),
+  INDEX idx_product (product_id, active)
+) CHARACTER SET utf8mb4`);
+
+await c.query(`CREATE TABLE IF NOT EXISTS favorites (
+  user_id INT UNSIGNED NOT NULL,
+  product_id INT UNSIGNED NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (user_id, product_id)
+) CHARACTER SET utf8mb4`);
+
+console.log("Tablolar hazır: products, admins, users, hero_slides, showcase_tiles, campaign_blocks, orders, order_items, reviews, favorites");
 await c.end();

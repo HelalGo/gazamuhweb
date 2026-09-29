@@ -5,6 +5,7 @@ import { motion } from "motion/react";
 import type { Product } from "@/lib/data";
 import { tl, waLink } from "@/lib/utils";
 import { useCart } from "@/store/cart";
+import { FavoriteButton } from "./FavoriteButton";
 
 export function ProductCard({ product: p, index = 0 }: { product: Product; index?: number }) {
   const add = useCart((s) => s.add);
@@ -18,18 +19,21 @@ export function ProductCard({ product: p, index = 0 }: { product: Product; index
       transition={{ duration: 0.45, delay: (index % 3) * 0.08 }}
       className="group flex flex-col"
     >
-      <Link
-        href={`/urun/${p.slug}`}
-        className="relative mb-4 block aspect-[4/3] overflow-hidden rounded-2xl bg-surface transition-colors group-hover:bg-surface-alt"
-      >
-        {p.imageUrl && <Image src={p.imageUrl} alt={p.name} fill sizes="(min-width:1280px) 30vw, 50vw" className="object-contain p-4" unoptimized />}
-        {discount > 0 && (
-          <span className="absolute left-3 top-3 rounded-full bg-accent px-2.5 py-1 text-xs font-bold text-white">%{discount}</span>
-        )}
-        {!p.inStock && (
-          <span className="absolute right-3 top-3 rounded-full bg-foreground/80 px-2.5 py-1 text-xs font-bold text-white">Tükendi</span>
-        )}
-      </Link>
+      <div className="relative mb-4">
+        <Link
+          href={`/urun/${p.slug}`}
+          className="relative block aspect-[4/3] overflow-hidden rounded-2xl bg-surface transition-colors group-hover:bg-surface-alt"
+        >
+          {p.imageUrl && <Image src={p.imageUrl} alt={p.name} fill sizes="(min-width:1280px) 30vw, 50vw" className="object-contain p-4" unoptimized />}
+          {discount > 0 && (
+            <span className="absolute left-3 top-3 rounded-full bg-accent px-2.5 py-1 text-xs font-bold text-white">%{discount}</span>
+          )}
+          {!p.inStock && (
+            <span className="absolute bottom-3 left-3 rounded-full bg-foreground/80 px-2.5 py-1 text-xs font-bold text-white">Tükendi</span>
+          )}
+        </Link>
+        <FavoriteButton id={p.id} className="absolute right-3 top-3" />
+      </div>
       <p className="text-xs text-muted">{p.brand}</p>
       <Link href={`/urun/${p.slug}`} className="mt-0.5 line-clamp-2 min-h-[2.75rem] font-bold leading-snug hover:text-primary">
         {p.name}

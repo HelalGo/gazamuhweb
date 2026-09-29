@@ -1,25 +1,38 @@
 import type { Metadata } from "next";
 import Image from "next/image";
+import Link from "next/link";
 import { notFound } from "next/navigation";
+import { BadgeCheck } from "lucide-react";
 import { AddToCart } from "@/components/AddToCart";
 import { Breadcrumb } from "@/components/Breadcrumb";
+import { FavoriteButton } from "@/components/FavoriteButton";
+import { ReviewForm } from "@/components/ReviewForm";
+import { Stars } from "@/components/Stars";
+import { dbConfigured, getUser } from "@/lib/customer";
 import { getProduct } from "@/lib/products";
+import { getReviews, reviewEligibility, type Eligibility } from "@/lib/reviews";
 import { slugify } from "@/lib/slug";
 import { tl } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
-type Props = { params: Promise<{ slug: string }> };
+type Props = { params: Promise<{ slug: string }>; searchParams: Promise<{ yorum?: string }> };
 
-export async function generateMetadata({ params }: Props): Promise<Metadata> {
+export async function generateMetadata({ params }: Pick<Props, "params">): Promise<Metadata> {
   const p = await getProduct((await params).slug);
   return { title: p ? `${p.name} | GAZ-A Mühendislik` : "Ürün bulunamadı" };
 }
 
-export default async function ProductPage({ params }: Props) {
+export default async function ProductPage({ params, searchParams }: Props) {
   const p = await getProduct((await params).slug);
   if (!p) notFound();
+  const { yorum } = await searchParams;
   const specs = Object.entries(p.specs);
+
+  const reviewsOn = dbConfigured();
+  const user = reviewsOn ? await getUser() : null;
+  const { list, summary } = reviewsOn ? await getReviews(p.id) : { list: [], summary: { avg: 0, count: 0 } };
+  const eligible: Eligibility = reviewsOn ? await reviewEligibility(user?.id ?? null, p.id).catch(() => "guest" as Eligibility) : "guest";
 
   return (
     <div className="mx-auto w-full max-w-7xl px-4 pb-8 pt-40 md:px-6">
@@ -28,11 +41,17 @@ export default async function ProductPage({ params }: Props) {
       <div className="mt-8 grid gap-10 lg:grid-cols-2">
         <div className="relative aspect-square overflow-hidden rounded-3xl bg-surface">
           {p.imageUrl && <Image src={p.imageUrl} alt={p.name} fill sizes="50vw" className="object-contain p-8" unoptimized />}
+          <FavoriteButton id={p.id} className="absolute right-4 top-4 !h-11 !w-11" />
         </div>
 
         <div>
           <p className="text-sm text-muted">{p.brand}</p>
           <h1 className="mt-1 text-2xl font-extrabold leading-snug md:text-3xl">{p.name}</h1>
+          {summary.count > 0 && (
+            <a href="#yorumlar" className="mt-2 inline-flex items-center gap-2 text-sm text-muted hover:text-foreground">
+              <Stars value={summary.avg} /> <span className="font-semibold text-foreground">{summary.avg.toFixed(1)}</span> ({summary.count} yorum)
+            </a>
+          )}
           {p.sku && <p className="mt-2 text-xs text-muted">Ürün kodu: {p.sku}</p>}
 
           <div className="mt-6 flex items-end gap-3">
@@ -73,6 +92,56 @@ export default async function ProductPage({ params }: Props) {
           )}
         </div>
       </div>
+
+      {reviewsOn && (
+        <section id="yorumlar" className="mt-20 scroll-mt-40">
+          <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
+            <h2 className="text-2xl font-extrabold">Değerlendirmeler</h2>
+            {summary.count > 0 && (
+              <div className="flex items-center gap-3">
+                <span className="text-3xl font-extrabold">{summary.avg.toFixed(1)}</span>
+                <div><Stars value={summary.avg} size={18} /><p className="text-xs text-muted">{summary.count} değerlendirme</p></div>
+              </div>
+            )}
+          </div>
+
+          <div className="grid gap-10 lg:grid-cols-[1fr_420px]">
+            <div>
+              {yorum && <p role="status" className="mb-6 rounded-xl bg-green-50 px-4 py-3 text-sm font-semibold text-green-700">Yorumunuz için teşekkürler, yayınlandı.</p>}
+              {list.length ? (
+                <ul className="divide-y divide-border">
+                  {list.map((r) => (
+                    <li key={r.id} className="py-6 first:pt-0">
+                      <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+                        <Stars value={r.rating} />
+                        <span className="text-sm font-bold">{r.author}</span>
+                        <span className="inline-flex items-center gap-1 text-xs font-semibold text-green-700"><BadgeCheck size={14} /> Satın aldı</span>
+                        <span className="text-xs text-muted">{r.date}</span>
+                      </div>
+                      <p className="mt-3 whitespace-pre-line text-sm leading-relaxed text-foreground/85">{r.comment}</p>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="rounded-3xl bg-surface p-10 text-center text-sm text-muted">Bu ürün için henüz değerlendirme yok.</p>
+              )}
+            </div>
+
+            <div>
+              {eligible === "ok" && <ReviewForm productId={p.id} />}
+              {eligible === "guest" && (
+                <p className="rounded-3xl bg-surface p-6 text-sm leading-relaxed text-muted">
+                  Ürünleri değerlendirmek için <Link href={`/giris?next=${encodeURIComponent(`/urun/${p.slug}`)}`} className="font-semibold text-primary hover:underline">giriş yapın</Link>.
+                  Yalnızca satın alan müşteriler yorum yapabilir.
+                </p>
+              )}
+              {eligible === "not-purchased" && <p className="rounded-3xl bg-surface p-6 text-sm leading-relaxed text-muted">Bu ürünü değerlendirebilmek için satın almış olmanız gerekir.</p>}
+              {eligible === "waiting" && <p className="rounded-3xl bg-surface p-6 text-sm leading-relaxed text-muted">Siparişiniz teslim edildikten sonra bu ürünü değerlendirebilirsiniz.</p>}
+              {eligible === "already" && <p className="rounded-3xl bg-surface p-6 text-sm leading-relaxed text-green-700">Bu ürünü zaten değerlendirdiniz, teşekkürler.</p>}
+            </div>
+          </div>
+        </section>
+      )}
     </div>
   );
 }

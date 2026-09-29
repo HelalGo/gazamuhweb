@@ -4,11 +4,14 @@ import { usePathname } from "next/navigation";
 import Image from "next/image";
 import { AnimatePresence, motion } from "motion/react";
 import { Heart, Menu, Search, ShoppingCart, User, X } from "lucide-react";
-import { useCart } from "@/store/cart";
+import Link from "next/link";
+import { cartCount, useCart } from "@/store/cart";
+import { useSite } from "./SiteProvider";
 import { nav } from "@/lib/site";
 
 export function Header() {
-  const count = useCart((s) => s.items.reduce((t, i) => t + i.qty, 0));
+  const count = useCart((s) => cartCount(s.items));
+  const { user, favs, enabled } = useSite();
   const pathname = usePathname();
   const [open, setOpen] = useState<string | null>(null);
   const [mobile, setMobile] = useState(false);
@@ -39,20 +42,22 @@ export function Header() {
         </label>
 
         <div className="ml-auto flex items-center gap-1 md:ml-0">
-          <button className="relative rounded-full p-2.5 hover:bg-surface" aria-label="Favoriler">
+          <Link href={enabled ? "/favoriler" : "/giris"} className="relative rounded-full p-2.5 hover:bg-surface" aria-label="Favorilerim">
             <Heart size={22} />
-          </button>
-          <button className="relative rounded-full p-2.5 hover:bg-surface" aria-label="Sepet">
+            {favs.size > 0 && (
+              <span className="absolute right-0 top-0 grid h-5 min-w-5 place-items-center rounded-full bg-red-500 px-1 text-xs font-bold text-white">{favs.size}</span>
+            )}
+          </Link>
+          <Link href="/sepet" className="relative rounded-full p-2.5 hover:bg-surface" aria-label="Sepetim">
             <ShoppingCart size={22} />
             {count > 0 && (
-              <span className="absolute right-0 top-0 grid h-5 w-5 place-items-center rounded-full bg-primary text-xs font-bold text-white">
-                {count}
-              </span>
+              <span className="absolute right-0 top-0 grid h-5 min-w-5 place-items-center rounded-full bg-primary px-1 text-xs font-bold text-white">{count}</span>
             )}
-          </button>
-          <a href="/giris" className="rounded-full p-2.5 hover:bg-surface" aria-label="Giriş yap">
+          </Link>
+          <Link href={user ? "/hesabim" : "/giris"} className="flex items-center gap-2 rounded-full p-2.5 hover:bg-surface" aria-label={user ? "Hesabım" : "Giriş yap"}>
             <User size={22} />
-          </a>
+            {user && <span className="hidden max-w-24 truncate text-sm font-semibold lg:block">{user.name}</span>}
+          </Link>
         </div>
       </div>
 
