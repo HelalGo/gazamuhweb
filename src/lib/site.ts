@@ -2,6 +2,7 @@ export const WHATSAPP_NUMBER = "905331944952";
 export const WHATSAPP_MESSAGE = "Merhaba, bilgi almak istiyorum.";
 
 export const nav = [
+  { label: "Tüm Ürünler", href: "/urunler", groups: [] },
   {
     label: "Klima",
     href: "/klima",

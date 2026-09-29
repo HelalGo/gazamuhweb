@@ -17,8 +17,8 @@ const facetDefs: { key: Key; title: string }[] = [
   { key: "productGroup", title: "Ürün Grubu" },
 ];
 
-export function ProductListing({ products, crumbs = ["Ana Sayfa"], hideCategory = false }: { products: Product[]; crumbs?: string[]; hideCategory?: boolean }) {
-  const [sel, setSel] = useState<Sel>(empty);
+export function ProductListing({ products, crumbs = ["Ana Sayfa"], hideCategory = false, initialBrands = [] }: { products: Product[]; crumbs?: string[]; hideCategory?: boolean; initialBrands?: string[] }) {
+  const [sel, setSel] = useState<Sel>({ ...empty, brand: initialBrands });
   const [min, setMin] = useState("");
   const [max, setMax] = useState("");
   const [sort, setSort] = useState("default");
