@@ -1,10 +1,14 @@
 "use server";
 import type { ResultSetHeader, RowDataPacket } from "mysql2";
 import { redirect } from "next/navigation";
+import { after } from "next/server";
 import { hashPassword, verifyPassword } from "@/lib/auth";
 import { createUserSession, destroyUserSession, getUser } from "@/lib/customer";
 import { db } from "@/lib/db";
 import { safeUrl } from "@/lib/layouts";
+import { orderInbox, sendMail } from "@/lib/mail";
+import { orderAdminMail, orderReceivedMail, welcomeMail, type OrderMailData } from "@/lib/mails";
+import { subscribe } from "@/lib/newsletter";
 import { reviewEligibility } from "@/lib/reviews";
 import { clientIp, tooMany } from "@/lib/ratelimit";
 
@@ -36,6 +40,12 @@ export async function register(_: string | null, f: FormData): Promise<string | 
       [first, last, email, phone, await hashPassword(password)]
     );
     await createUserSession(res.insertId, true);
+    after(() => sendMail(email, welcomeMail({ firstName: first, email }), { from: "noreply", tag: "hoş geldiniz" }));
+    // Bülten kutusu işaretliyse aynı e-posta bültene kaydedilir (onay zamanı ve IP ile)
+    if (f.get("newsletter")) {
+      const ip = await clientIp();
+      after(() => subscribe(email, ip).catch((e) => console.error("[bülten üyelik]", (e as Error).message)));
+    }
   } catch (e) {
     console.error("[register]", (e as Error).message);
     return "Şu an kayıt yapılamıyor. Lütfen daha sonra tekrar deneyin.";
@@ -102,10 +112,11 @@ export async function placeOrder(_: string | null, f: FormData): Promise<string 
   try {
     // Fiyat ve stok bilgisi istemciden değil, veritabanından alınır
     const ids = [...new Set(lines.map((l) => l.id))];
-    const [rows] = await conn.query<RowDataPacket[]>("SELECT id, name, price, in_stock FROM products WHERE active = 1 AND id IN (?)", [ids]);
+    const [rows] = await conn.query<RowDataPacket[]>("SELECT id, name, price, in_stock, image_url FROM products WHERE active = 1 AND id IN (?)", [ids]);
     const byId = new Map(rows.map((r) => [r.id as number, r]));
     let total = 0;
     const items: [number, string, number, number][] = [];
+    const images = new Map(rows.map((r) => [r.id as number, r.image_url as string | null]));
     for (const l of lines) {
       const p = byId.get(l.id);
       if (!p) return "Sepetinizdeki bir ürün artık satışta değil. Lütfen sepetinizi güncelleyin.";
@@ -123,6 +134,15 @@ export async function placeOrder(_: string | null, f: FormData): Promise<string 
     await conn.query("INSERT INTO order_items (order_id, product_id, name, price, qty) VALUES ?", [items.map((i) => [res.insertId, ...i])]);
     await conn.commit();
     orderId = res.insertId;
+    // Sipariş onayı müşteriye, bildirim size; yanıtı bekletmeden gönderilir
+    const mail: OrderMailData = {
+      id: orderId, createdAt: new Date(), fullName, email, phone, city, address, note, total,
+      items: items.map(([pid, name, price, qty]) => ({ name, price, qty, image: images.get(pid) })),
+    };
+    after(async () => {
+      await sendMail(email, orderReceivedMail(mail), { from: "siparis", tag: "sipariş" });
+      await sendMail(orderInbox(), orderAdminMail(mail), { from: "noreply", replyTo: email, tag: "sipariş bildirimi" });
+    });
   } catch (e) {
     await conn.rollback().catch(() => {});
     console.error("[order]", (e as Error).message);

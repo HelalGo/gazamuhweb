@@ -76,11 +76,19 @@ export function AuthForm({ mode, next }: { mode: "login" | "register"; next?: st
               <span className={box}>{tick}</span> Beni hatırla
             </label>
           ) : (
+            <>
+            {/* Bülten: işaretli bırakılırsa üyelik e-postası bültene de kaydedilir */}
+            <label className="flex cursor-pointer items-start gap-2.5 text-xs leading-relaxed text-muted">
+              <input type="checkbox" name="newsletter" defaultChecked className="peer sr-only" />
+              <span className={box + " mt-0.5"}>{tick}</span>
+              <span>Kampanya, indirim ve yeniliklerden e-posta ile haberdar olmak için bültene abone olmak ve bu amaçla tarafıma ticari elektronik ileti gönderilmesini istiyorum. Aboneliğimi dilediğim zaman sonlandırabilirim.</span>
+            </label>
             <label className="flex cursor-pointer items-start gap-2.5 text-xs leading-relaxed text-muted">
               <input type="checkbox" name="kvkk" required className="peer sr-only" />
               <span className={box + " mt-0.5"}>{tick}</span>
               <span><a href="/kvkk-aydinlatma-metni" target="_blank" className="font-semibold text-accent hover:underline">KVKK Aydınlatma Metni</a>&apos;ni okudum ve kabul ediyorum.</span>
             </label>
+            </>
           )}
 
           {error && <p role="alert" className="rounded-[4px] bg-red-50 px-4 py-3 text-sm font-semibold text-red-700">{error}</p>}

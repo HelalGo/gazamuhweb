@@ -43,7 +43,7 @@ export default async function EditProduct({ params, searchParams }: { params: Pr
                   <input name="brand" list="brands" defaultValue={r.brand ?? ""} className={field} />
                   <datalist id="brands">{brands.map((b) => <option key={b.brand} value={b.brand} />)}</datalist>
                 </Label>
-                <Label text="Ürün kodu (SKU)"><input name="sku" defaultValue={r.sku ?? ""} className={field} /></Label>
+                <Label text="Ürün kodu" hint="Boş bırakırsanız kategoriye göre otomatik atanır (ör. GZ-KMB-0001)."><input name="sku" defaultValue={r.sku ?? ""} placeholder="Otomatik" className={field} /></Label>
                 <Label text="Kategori" hint="Listeden seçin ya da yeni kategori yazın.">
                   <input name="category" list="cats" defaultValue={r.category ?? ""} className={field} />
                   <datalist id="cats">{cats.map((c) => <option key={c.category} value={c.category} />)}</datalist>

@@ -77,3 +77,16 @@ export async function getCategories(): Promise<string[]> {
 }
 
 export const categoryOf = async (slug: string) => (await getCategories()).find((c) => slugify(c) === slug);
+
+// Ürün başına satılan adet (iptal edilen siparişler hariç); "En çok satanlar" sıralaması için
+export async function getSalesCounts(): Promise<Map<string, number>> {
+  if (!dbConfigured()) return new Map();
+  try {
+    const [rows] = await db().query<RowDataPacket[]>(
+      `SELECT i.product_id, SUM(i.qty) n FROM order_items i JOIN orders o ON o.id = i.order_id
+       WHERE o.status <> 'cancelled' AND i.product_id IS NOT NULL GROUP BY i.product_id`);
+    return new Map(rows.map((r) => [String(r.product_id), Number(r.n)]));
+  } catch {
+    return new Map();
+  }
+}

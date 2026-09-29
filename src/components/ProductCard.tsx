@@ -37,6 +37,13 @@ export function ProductCard({ product: p, index = 0 }: { product: Product; index
           </div>
         </Link>
         <FavoriteButton id={p.id} className="absolute right-3 top-3" />
+        {/* Üzerine gelince görselin altında beliren bilgi bağlantısı */}
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 hidden h-1/3 items-end justify-center rounded-b-[4px] bg-gradient-to-t from-[#0b1d45]/70 to-transparent pb-5 opacity-0 transition-opacity duration-500 group-hover:opacity-100 md:flex">
+          <Link href={`/bilgi-al?urun=${encodeURIComponent(p.slug)}`}
+            className="pointer-events-auto translate-y-2 text-sm font-semibold text-white underline decoration-white/60 underline-offset-4 transition-transform duration-500 group-hover:translate-y-0 hover:decoration-white">
+            Bilgi al
+          </Link>
+        </div>
       </div>
 
       <p className="mt-4 text-[11px] font-semibold uppercase tracking-[0.18em] text-accent">{p.brand}</p>
@@ -54,7 +61,7 @@ export function ProductCard({ product: p, index = 0 }: { product: Product; index
             </>
           )}
         </div>
-        {noPrice || !p.inStock ? (
+        {noPrice ? (
           <Link href={`/bilgi-al?urun=${encodeURIComponent(p.slug)}`} aria-label="Bilgi al" title="Bilgi al"
             className="inline-flex h-10 shrink-0 items-center gap-1.5 rounded-[4px] border border-primary px-3 text-xs font-bold uppercase tracking-wider text-primary transition-colors hover:bg-primary hover:text-white">
             <Info size={15} />Bilgi al

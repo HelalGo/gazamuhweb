@@ -3,7 +3,7 @@ import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "
 import Image from "next/image";
 import Link from "next/link";
 import { AnimatePresence, motion } from "motion/react";
-import { Check, ChevronDown, Lock, X } from "lucide-react";
+import { Check, ChevronDown, Cookie, Lock, X } from "lucide-react";
 import {
   OPEN_EVENT, allOff, allOn, categories, consentSnapshot, parseConsent, saveConsent, subscribeConsent, type Category, type Choices,
 } from "@/lib/consent";
@@ -98,6 +98,21 @@ export function CookieConsent() {
               Tercihleri yönet
             </button>
           </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Tercih verildikten sonra sol altta kalan buton (WhatsApp butonunun karşısı) */}
+      <AnimatePresence>
+        {consent && !open && (
+          <motion.button onClick={openSettings} aria-label="Çerez tercihleri" title="Çerez tercihleri"
+            initial={{ scale: 0 }} animate={{ scale: 1 }} exit={{ scale: 0 }} transition={{ type: "spring", delay: 0.8 }}
+            whileHover={{ scale: 1.08 }} whileTap={{ scale: 0.95 }}
+            className="group fixed bottom-5 left-5 z-50 grid h-14 w-14 place-items-center rounded-[4px] bg-white text-primary shadow-lg shadow-black/20 ring-1 ring-border">
+            <Cookie size={26} />
+            <span className="pointer-events-none absolute left-full ml-3 hidden whitespace-nowrap rounded-[4px] bg-primary px-3 py-1.5 text-xs font-semibold text-white opacity-0 transition-opacity group-hover:opacity-100 md:block">
+              Çerez tercihleri
+            </span>
+          </motion.button>
         )}
       </AnimatePresence>
 

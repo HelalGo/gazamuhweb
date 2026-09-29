@@ -4,16 +4,8 @@ import { CookieSettingsButton } from "@/components/CookieConsent";
 import { categories } from "./consent";
 import { company, contact, igdas } from "./site";
 
-// Metinlerde geçen işletmeye özgü değerler. Değişirse yalnızca burayı güncelleyin.
-export const policy = {
-  updated: "29 Eylül 2026",
-  site: "gazamuhendislik.com.tr",
-  shipDays: 3, // stoktaki ürünlerin kargoya verilme süresi (iş günü)
-  maxDeliveryDays: 30, // yasal üst sınır
-  withdrawalDays: 14, // cayma hakkı süresi (Mesafeli Sözleşmeler Yönetmeliği)
-  refundDays: 14, // iadenin tüketiciye ödenme süresi
-  paymentProvider: "PayTR Ödeme ve Elektronik Para Kuruluşu A.Ş.",
-};
+export { policy } from "./policy";
+import { policy } from "./policy";
 
 export type LegalSlug =
   | "hakkimizda" | "iletisim" | "gizlilik-politikasi" | "kvkk-aydinlatma-metni" | "mesafeli-satis-sozlesmesi"
@@ -471,8 +463,8 @@ export const legal: Record<LegalSlug, { title: string; description: string; body
         <h2>Çerez tercihleriniz</h2>
         <p>
           Siteyi ilk ziyaretinizde çıkan bildirimden çerez tercihlerinizi seçebilirsiniz. Zorunlu çerezler dışındaki kategoriler
-          yalnızca izin vermeniz hâlinde çalışır. Tercihiniz 6 ay boyunca saklanır; dilediğiniz zaman aşağıdaki butondan veya sayfa
-          altındaki &quot;Çerez tercihleri&quot; bağlantısından değiştirebilirsiniz.
+          yalnızca izin vermeniz hâlinde çalışır. Tercihiniz 6 ay boyunca saklanır; dilediğiniz zaman aşağıdaki butondan veya sayfanın
+          sol altındaki çerez butonundan değiştirebilirsiniz.
         </p>
         <p>
           <CookieSettingsButton className="inline-flex h-11 items-center rounded-[4px] bg-primary px-6 text-xs font-bold uppercase tracking-[0.14em] text-white transition hover:bg-primary/90">

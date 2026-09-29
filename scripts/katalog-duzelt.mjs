@@ -5,6 +5,9 @@
 //  3) Kazınan veride "tükendi" görünen ürünleri stokta yapar (ürünler artık kendi stoğumuz).
 //  4) products.images sütununu ekler ve katalog-galeri.json'daki ek görselleri ürünlere bağlar.
 //  5) Kaynak sitenin kendi bina fotoğraflarını (katalog-cikar.json) ürün galerilerinden çıkarır.
+//  6) Ürün açıklamalarını kurumsal metinlerle değiştirir, fiyatı olmayan / 10 TL görünen ürünlere
+//     piyasa fiyatı yazar ve yanlış kategorideki ürünü düzeltir (katalog-aciklama.json).
+//  7) Kaynak siteden gelen ürün kodlarını GAZA kodlarıyla değiştirir (GZ-KMB-0001 biçimi).
 // Her adım başarıyla bitince UPLOAD_DIR'e kendi işaret dosyasını bırakır ve bir daha çalışmaz;
 // böylece sonradan admin panelinden yapılan değişikliklere dokunulmaz.
 import { createHash, randomBytes } from "node:crypto";
@@ -18,6 +21,8 @@ const MARK = ".katalog-duzeltme-1";
 const MARK_STOCK = ".stok-duzeltme-1";
 const MARK_GALLERY = ".galeri-1";
 const MARK_CLEAN = ".bina-temizle-1";
+const MARK_TEXT = ".aciklama-fiyat-1";
+const MARK_SKU = ".urun-kodu-1";
 const exists = (p) => access(p).then(() => true, () => false);
 const bundledName = (url) => createHash("sha1").update(url).digest("hex").slice(0, 24) + ".webp";
 
@@ -40,7 +45,9 @@ export async function run() {
   const doStock = !(await exists(path.join(uploadDir, MARK_STOCK)));
   const doGallery = !(await exists(path.join(uploadDir, MARK_GALLERY)));
   const doClean = !(await exists(path.join(uploadDir, MARK_CLEAN)));
-  if (!doCatalog && !doStock && !doGallery && !doClean) return;
+  const doText = !(await exists(path.join(uploadDir, MARK_TEXT)));
+  const doSku = !(await exists(path.join(uploadDir, MARK_SKU)));
+  if (!doCatalog && !doStock && !doGallery && !doClean && !doText && !doSku) return;
 
   const c = await mysql.createConnection({
     host: process.env.DB_HOST,
@@ -61,6 +68,8 @@ export async function run() {
     }
     if (doGallery) await gallery(c, uploadDir);
     if (doClean) await clean(c, uploadDir);
+    if (doText) await texts(c, uploadDir);
+    if (doSku) await skus(c, uploadDir);
   } finally {
     await c.end();
   }
@@ -150,6 +159,49 @@ async function clean(c, uploadDir) {
   for (const f of bad) await unlink(path.join(uploadDir, f)).catch(() => {});
   console.log(`[katalog] ${fixed} ürünün galerisinden bina fotoğrafı çıkarıldı`);
   await writeFile(path.join(uploadDir, MARK_CLEAN), new Date().toISOString());
+}
+
+// 6) Açıklama, fiyat ve kategori. Adminden değiştirilmiş açıklama ve fiyatlara dokunulmaz.
+async function texts(c, uploadDir) {
+  let data = {};
+  try { data = JSON.parse(await readFile(path.join(HERE, "katalog-aciklama.json"), "utf8")); } catch { return; }
+  const [rows] = await c.query("SELECT id, source_url, description, price, category FROM products WHERE source_url IS NOT NULL");
+  let desc = 0, price = 0, cat = 0;
+  for (const p of rows) {
+    const e = data[p.source_url];
+    if (!e) continue;
+    const v = {};
+    const cur = (p.description ?? "").trim();
+    if (!cur || createHash("sha1").update(cur).digest("hex").slice(0, 16) === e.origHash) { v.description = e.description; desc++; }
+    if (e.price && Number(p.price) <= 10) { v.price = e.price; v.old_price = null; price++; }
+    if (e.category && p.category !== e.category) { v.category = e.category; cat++; }
+    if (Object.keys(v).length) await c.query("UPDATE products SET ? WHERE id = ?", [v, p.id]);
+  }
+  console.log(`[katalog] ${desc} açıklama, ${price} fiyat, ${cat} kategori güncellendi`);
+  await writeFile(path.join(uploadDir, MARK_TEXT), new Date().toISOString());
+}
+
+// 7) Ürün kodları: kategori başına marka ve ada göre sıralı numara. Zaten GZ- ile başlayanlara dokunulmaz.
+// Kategori kısaltmaları src/lib/sku.ts ile aynıdır.
+const CATEGORY_CODES = { Kombi: "KMB", Klima: "KLM", "Isı Pompası": "ISP", Radyatör: "RAD", Şofben: "SFB", "Sirkülasyon Pompası": "SRK", "Oda Termostatı": "TRM" };
+async function skus(c, uploadDir) {
+  const [rows] = await c.query("SELECT id, sku, category FROM products ORDER BY category, brand, name, id");
+  const next = new Map();
+  for (const r of rows) {
+    const m = /^GZ-([A-Z]{3})-(\d+)$/.exec(r.sku ?? "");
+    if (m) next.set(m[1], Math.max(next.get(m[1]) ?? 0, Number(m[2])));
+  }
+  let n = 0;
+  for (const r of rows) {
+    if ((r.sku ?? "").startsWith("GZ-")) continue;
+    const code = CATEGORY_CODES[r.category] ?? "URN";
+    const seq = (next.get(code) ?? 0) + 1;
+    next.set(code, seq);
+    await c.query("UPDATE products SET sku = ? WHERE id = ?", [`GZ-${code}-${String(seq).padStart(4, "0")}`, r.id]);
+    n++;
+  }
+  console.log(`[katalog] ${n} ürüne GAZA ürün kodu verildi`);
+  await writeFile(path.join(uploadDir, MARK_SKU), new Date().toISOString());
 }
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {

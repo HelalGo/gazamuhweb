@@ -16,6 +16,7 @@ cp scripts/katalog-duzelt.mjs "$ST/katalog-duzelt.mjs"
 cp -R data/katalog-gorselleri "$ST/katalog-gorselleri"
 cp data/katalog-galeri.json "$ST/katalog-galeri.json"
 cp data/katalog-cikar.json "$ST/katalog-cikar.json"
+cp data/katalog-aciklama.json "$ST/katalog-aciklama.json"
 cat > "$ST/app.js" <<'JS'
 // Başlangıç dosyası: .env dosyasını okuyup Next.js sunucusunu çalıştırır.
 const path = require("path");

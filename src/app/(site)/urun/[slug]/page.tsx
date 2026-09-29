@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { BadgeCheck, Info, Phone, Wrench } from "lucide-react";
 import { AddToCart } from "@/components/AddToCart";
 import { Breadcrumb } from "@/components/Breadcrumb";
+import { Description } from "@/components/Description";
 import { FavoriteButton } from "@/components/FavoriteButton";
 import { ProductGallery } from "@/components/ProductGallery";
 import { ReviewForm } from "@/components/ReviewForm";
@@ -92,7 +93,7 @@ export default async function ProductPage({ params, searchParams }: Props) {
           {p.description && (
             <section className="mt-10">
               <h2 className="mb-3 text-lg font-bold">Ürün Açıklaması</h2>
-              <p className="whitespace-pre-line text-sm leading-relaxed text-foreground/80">{p.description}</p>
+              <Description text={p.description} />
             </section>
           )}
 

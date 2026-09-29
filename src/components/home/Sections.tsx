@@ -32,7 +32,7 @@ export function Heading({ eyebrow, title, href, linkLabel = "Tümünü gör" }: 
 export function Deals({ products }: { products: Product[] }) {
   if (!products.length) return null;
   return (
-    <section className="bg-surface py-20 lg:py-28">
+    <section className="bg-surface pb-20 pt-12 lg:pb-28 lg:pt-14">
       <div className={wrap}>
         <Heading eyebrow="Fırsatlar" title="Kampanyalı Ürünler" href="/urunler" linkLabel="Tüm ürünler" />
         <DealsGrid products={products} />

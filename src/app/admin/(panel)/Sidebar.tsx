@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
-  Award, ExternalLink, GalleryHorizontal, ImagePlus, Inbox, LayoutDashboard, LayoutGrid, LogOut, Megaphone, Menu, MessageSquare, Package, ShoppingBag, X,
+  Award, ExternalLink, MailCheck, Users, GalleryHorizontal, ImagePlus, Inbox, LayoutDashboard, LayoutGrid, LogOut, Megaphone, Menu, MessageSquare, Package, ShoppingBag, X,
 } from "lucide-react";
 import { logout } from "../actions";
 
@@ -29,6 +29,13 @@ const groups = [
       { href: "/admin/markalar", label: "Markalar", icon: Award },
     ],
   },
+  {
+    title: "İletişim",
+    items: [
+      { href: "/admin/e-postalar", label: "E-postalar", icon: MailCheck },
+      { href: "/admin/aboneler", label: "Bülten Aboneleri", icon: Users },
+    ],
+  },
 ] as const;
 
 export function Sidebar({ name, email, pendingOrders, openLeads }: { name: string; email: string; pendingOrders: number; openLeads: number }) {
@@ -37,7 +44,7 @@ export function Sidebar({ name, email, pendingOrders, openLeads }: { name: strin
   const [open, setOpen] = useState(false);
 
   const nav = (
-    <nav className="flex-1 space-y-6 overflow-y-auto px-3 py-4" data-lenis-prevent>
+    <nav className="flex-1 space-y-6 overflow-y-auto px-3 py-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden" data-lenis-prevent>
       {groups.map((g) => (
         <div key={g.title}>
           {g.title && <p className="mb-2 px-3 text-[11px] font-bold uppercase tracking-widest text-white/40">{g.title}</p>}

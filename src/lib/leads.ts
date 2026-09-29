@@ -1,7 +1,8 @@
-import nodemailer from "nodemailer";
 import type { ResultSetHeader } from "mysql2";
 import { db } from "./db";
-import { WHATSAPP_NUMBER, contact } from "./site";
+import { adminInbox, mailConfigured, sendMail } from "./mail";
+import { leadAdminMail, leadCustomerMail } from "./mails";
+import { WHATSAPP_NUMBER } from "./site";
 import { tl } from "./utils";
 
 export type Lead = {
@@ -59,23 +60,11 @@ function lines(l: Lead): string[] {
   ];
 }
 
-const esc = (s: string) => s.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]!);
-
-async function sendMail(l: Lead) {
-  const { SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS } = process.env;
-  if (!SMTP_HOST || !SMTP_USER || !SMTP_PASS || SMTP_PASS.startsWith("BURAYA")) return false;
-  const port = Number(SMTP_PORT || 465);
-  const t = nodemailer.createTransport({ host: SMTP_HOST, port, secure: port === 465, auth: { user: SMTP_USER, pass: SMTP_PASS } });
-  const rows = lines(l).map((x) => (x ? `<p style="margin:4px 0">${esc(x)}</p>` : "<hr>")).join("");
-  await t.sendMail({
-    from: `"GAZ-A Web Sitesi" <${SMTP_USER}>`,
-    to: process.env.MAIL_TO || contact.email,
-    replyTo: l.email || undefined,
-    subject: `Bilgi talebi: ${l.product?.name ?? "Genel"} — ${l.fullName}`,
-    text: lines(l).join("\n"),
-    html: `<div style="font-family:Arial,sans-serif;font-size:14px">${rows}</div>`,
-  });
-  return true;
+async function sendLeadMails(l: Lead) {
+  if (!mailConfigured()) return false;
+  const ok = await sendMail(adminInbox(), leadAdminMail(l), { from: "noreply", replyTo: l.email || undefined, tag: "talep" });
+  if (l.email) await sendMail(l.email, leadCustomerMail(l), { from: "noreply", tag: "talep onayı" });
+  return ok;
 }
 
 // CallMeBot: kayıtlı WhatsApp numarasına otomatik mesaj (https://www.callmebot.com/blog/free-api-whatsapp-messages/)
@@ -92,7 +81,7 @@ async function sendWhatsApp(l: Lead) {
 // Bildirimleri gönderir; biri başarısız olsa da talep kaybolmaz (veritabanında durur).
 export async function notifyLead(id: number, l: Lead) {
   const [mail, wa] = await Promise.all([
-    sendMail(l).catch((e) => { console.error("[lead mail]", (e as Error).message); return false; }),
+    sendLeadMails(l).catch((e) => { console.error("[lead mail]", (e as Error).message); return false; }),
     sendWhatsApp(l).catch((e) => { console.error("[lead whatsapp]", (e as Error).message); return false; }),
   ]);
   await db().query("UPDATE leads SET mail_ok = ?, wa_ok = ? WHERE id = ?", [mail ? 1 : 0, wa ? 1 : 0, id]).catch(() => {});

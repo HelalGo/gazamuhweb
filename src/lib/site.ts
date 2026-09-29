@@ -23,6 +23,14 @@ export const socials = [
 // İGDAŞ yetkisi: header rozeti, footer ve ana sayfa bölümünde gösterilir
 export const igdas = { title: "İGDAŞ Yetkili Bayi", no: "7005140", logo: "/brand/igdas.png" };
 
+// Posta kutuları: destek (müşteri iletişimi, bilgi talepleri), siparis (sipariş yazışmaları),
+// noreply (yanıt beklenmeyen otomatik e-postalar)
+export const mailboxes = {
+  destek: "destek@gazamuhendislik.com.tr",
+  siparis: "siparis@gazamuhendislik.com.tr",
+  noreply: "noreply@gazamuhendislik.com.tr",
+};
+
 export const contact = {
   phone: "0533 194 49 52",
   email: "destek@gazamuhendislik.com.tr",

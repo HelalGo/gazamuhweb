@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { createSession, destroySession, requireAdmin, verifyPassword } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { slugify } from "@/lib/slug";
+import { nextSku } from "@/lib/sku";
 import { removeImage, saveImage } from "@/lib/uploads";
 
 export async function login(_: string | null, formData: FormData): Promise<string | null> {
@@ -112,6 +113,10 @@ export async function saveProduct(formData: FormData) {
     if ("error" in saved) redirect(`${errPath}?imgerror=${encodeURIComponent(`${f.name}: ${saved.error}`)}`);
     gallery.push(saved.url);
   }
+  // Ürün kodu boşsa kategoriye göre otomatik atanır; başka üründe kullanılan kod kabul edilmez
+  if (!v.sku) v.sku = await nextSku(v.category);
+  const [dup] = await db().query<RowDataPacket[]>("SELECT id FROM products WHERE sku = ? AND id <> ? LIMIT 1", [v.sku, id ?? 0]);
+  if (dup.length) redirect(`${errPath}?imgerror=${encodeURIComponent(`"${v.sku}" ürün kodu başka bir üründe kullanılıyor.`)}`);
   const values = { ...v, images: JSON.stringify(gallery) };
 
   if (id) {
@@ -174,7 +179,7 @@ export async function bulkProducts(formData: FormData) {
 
 export type BulkResult = { matched: number; unmatched: string[]; failed: string[] } | null;
 
-// Dosya adı (uzantısız) ürün kodu (SKU) ile aynıysa o ürüne görsel olarak atanır. Örn: OK-DUO0124.jpg
+// Dosya adı (uzantısız) ürün kodu (SKU) ile aynıysa o ürüne görsel olarak atanır. Örn: GZ-KMB-0001.jpg
 export async function bulkUploadImages(_: BulkResult, formData: FormData): Promise<BulkResult> {
   await requireAdmin();
   const files = formData.getAll("images").filter((f): f is File => f instanceof File && f.size > 0);

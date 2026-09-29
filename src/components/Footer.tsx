@@ -1,9 +1,9 @@
 import Image from "next/image";
 import Link from "next/link";
-import { Mail, MapPin, Phone } from "lucide-react";
+import { LockKeyhole, Mail, MapPin, Phone } from "lucide-react";
 import { company, contact, footerLinks, igdas, nav } from "@/lib/site";
-import { CookieSettingsButton } from "./CookieConsent";
 import { IgdasBadge } from "./IgdasBadge";
+import { Newsletter } from "./Newsletter";
 import { SocialIcons } from "./SocialIcons";
 
 const info = [
@@ -19,6 +19,7 @@ const info = [
 export function Footer() {
   return (
     <footer className="mt-24 bg-surface">
+      <Newsletter />
       <div className="mx-auto grid w-full max-w-7xl gap-10 px-4 py-14 sm:grid-cols-2 md:px-6 lg:grid-cols-5">
         <div className="lg:col-span-2">
           <Image src="/brand/logo.png" alt="GAZ-A Mühendislik Proje Yönetimi" width={242} height={58} className="h-11 w-auto" />
@@ -75,6 +76,20 @@ export function Footer() {
         </dl>
       </div>
 
+      {/* Ödeme: PayTR onayından sonra kart logoları eklenecek */}
+      <div className="mx-auto w-full max-w-7xl px-4 md:px-6">
+        <div className="flex flex-col gap-3 border-t border-border py-6 md:flex-row md:items-center md:justify-between">
+          <p className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm font-semibold text-foreground/80">
+            <LockKeyhole size={16} className="text-primary" />
+            <span>Visa</span><span className="text-border">|</span><span>Mastercard</span><span className="text-border">|</span><span>Troy</span><span className="text-border">|</span>
+            <span className="text-primary">PayTR ile Güvenli Ödeme</span>
+          </p>
+          <p className="max-w-xl text-xs leading-relaxed text-muted md:text-right">
+            Bu internet sitesindeki ödeme hizmetleri PAYTR Ödeme ve Elektronik Para Kuruluşu A.Ş. tarafından sağlanmaktadır.
+          </p>
+        </div>
+      </div>
+
       <div className="bg-primary text-white">
         <div className="mx-auto flex w-full max-w-7xl flex-col items-center justify-between gap-3 px-4 py-5 text-xs md:flex-row md:px-6">
           <p className="text-center md:text-left">© {new Date().getFullYear()} {company.title}. Tüm hakları saklıdır.</p>
@@ -82,7 +97,6 @@ export function Footer() {
             {footerLinks["Sözleşmeler"].map((i) => (
               <li key={i.label}><Link href={i.href} className="hover:text-white">{i.label}</Link></li>
             ))}
-            <li><CookieSettingsButton className="hover:text-white" /></li>
           </ul>
         </div>
       </div>
