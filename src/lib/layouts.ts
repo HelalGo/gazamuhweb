@@ -4,6 +4,7 @@ import type { Req } from "./uploads";
 export const HERO_REQ: Req = { w: 1920, h: 1080, ratio: false };
 export const HERO_MOBILE_REQ: Req = { w: 1080, h: 1920, ratio: false, portrait: true };
 export const TILE_REQ: Req = { w: 800, h: 1120 }; // 5:7 dikey kart
+export const BRAND_REQ: Req = { w: 400, h: 200, ratio: false }; // marka logosu, oran serbest
 
 export type CampaignLayout = "full" | "half" | "third" | "bigLeft" | "bigRight";
 

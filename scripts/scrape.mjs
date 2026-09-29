@@ -92,6 +92,7 @@ for (const url of urls) {
   if (!html) continue;
   const p = parse(html, url);
   if (!p || !p.name || seen.has(p.sku || p.source_url)) continue;
+  if (/ankastre/i.test(`${p.category} ${p.product_group}`)) continue; // ankastre ürünleri satılmıyor
   seen.add(p.sku || p.source_url);
   out.push(p);
   if (out.length % 10 === 0) console.log(`  ${i}/${urls.length} tarandı, ${out.length} ürün`);

@@ -36,7 +36,7 @@ export default async function Account() {
 
       <h2 className="mb-4 text-lg font-bold">Siparişlerim</h2>
       {!orders.length ? (
-        <p className="rounded-3xl bg-surface p-10 text-center text-sm text-muted">Henüz siparişiniz yok. <Link href="/urunler" className="font-semibold text-primary hover:underline">Ürünlere göz atın</Link>.</p>
+        <p className="rounded-[4px] bg-surface p-10 text-center text-sm text-muted">Henüz siparişiniz yok. <Link href="/urunler" className="font-semibold text-primary hover:underline">Ürünlere göz atın</Link>.</p>
       ) : (
         <ul className="divide-y divide-border">
           {orders.map((o) => {
@@ -48,7 +48,7 @@ export default async function Account() {
                     <p className="font-bold">{orderNo(o.id)}</p>
                     <p className="text-xs text-muted">{new Date(o.created_at).toLocaleDateString("tr-TR", { day: "numeric", month: "long", year: "numeric" })} · {o.item_count} kalem</p>
                   </div>
-                  <span className={`rounded-full px-3 py-1 text-xs font-bold ${st.cls}`}>{st.label}</span>
+                  <span className={`rounded-[4px] px-3 py-1 text-xs font-bold ${st.cls}`}>{st.label}</span>
                   <p className="font-extrabold text-primary">{tl(Number(o.total))}</p>
                 </Link>
               </li>

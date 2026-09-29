@@ -32,3 +32,24 @@ body {
   color: var(--foreground);
   font-family: var(--font-geist-sans), Arial, sans-serif;
 }
+
+/* Markalar şeridi: iki kopya yan yana, bir kopya genişliği kayınca başa döner */
+@keyframes marquee { to { transform: translateX(-100%); } }
+.marquee { animation: marquee linear infinite; }
+.marquee-reverse { animation-direction: reverse; }
+@media (prefers-reduced-motion: reduce) { .marquee { animation: none; } }
+
+/* Kurumsal / yasal sayfa metinleri */
+.legal > * + * { margin-top: 1rem; }
+.legal > h2 { margin-top: 2.5rem; font-size: 1.25rem; font-weight: 700; color: var(--primary); }
+.legal > p, .legal > ul, .legal > ol { font-size: 0.9375rem; line-height: 1.8; color: color-mix(in srgb, var(--foreground) 80%, transparent); }
+.legal > p.lead { font-size: 1.0625rem; color: var(--foreground); }
+.legal > ul { list-style: disc; padding-left: 1.25rem; }
+.legal > ol { list-style: decimal; padding-left: 1.25rem; }
+.legal > ul > li + li, .legal > ol > li + li { margin-top: 0.4rem; }
+.legal a { color: var(--accent); font-weight: 600; }
+.legal a:hover { text-decoration: underline; }
+.legal table { width: 100%; border-collapse: collapse; font-size: 0.875rem; }
+.legal th, .legal td { border: 1px solid var(--border); padding: 0.65rem 0.9rem; text-align: left; vertical-align: top; }
+.legal th { width: 34%; background: var(--surface); font-weight: 600; }
+.legal thead th { width: auto; }

@@ -24,7 +24,7 @@ export default async function Favorites() {
           {list.map((p, i) => <ProductCard key={p!.id} product={p!} index={i} />)}
         </div>
       ) : (
-        <p className="rounded-3xl bg-surface p-12 text-center text-sm text-muted">
+        <p className="rounded-[4px] bg-surface p-12 text-center text-sm text-muted">
           Henüz favori ürününüz yok. Ürün kartlarındaki kalp simgesine dokunarak ekleyebilirsiniz.{" "}
           <Link href="/urunler" className="font-semibold text-primary hover:underline">Ürünlere göz atın</Link>.
         </p>

@@ -14,7 +14,7 @@ export type HeroSlide = {
   title: string;
   text: string;
   buttons: { label: string; url: string }[];
-  art?: "klima" | "kombi" | "ankastre" | "proje"; // görsel yokken gösterilen yerleşik tasarım
+  art?: "klima" | "kombi" | "proje"; // görsel yokken gösterilen yerleşik tasarım
 };
 
 export type Tile = { id: string; image: string | null; title: string; url: string };
@@ -53,7 +53,7 @@ export async function getSlides(): Promise<HeroSlide[]> {
 }
 
 export async function getTiles(): Promise<Tile[]> {
-  const fallback: Tile[] = ["Kombi", "Klima", "Ankastre", "Oda Termostatı"].map((t) => ({
+  const fallback: Tile[] = ["Kombi", "Klima", "Isı Pompası", "Oda Termostatı"].map((t) => ({
     id: t, image: null, title: t, url: `/${t.toLocaleLowerCase("tr").replace(/ı/g, "i").replace(/ş/g, "s").replace(/ /g, "-")}`,
   }));
   if (!dbOn()) return fallback;
@@ -74,6 +74,32 @@ export async function getCampaigns(): Promise<CampaignBlock[]> {
       items: typeof r.items === "string" ? JSON.parse(r.items) : r.items,
     }));
   } catch {
+    return [];
+  }
+}
+
+export type BrandLogo = { id: string; name: string; image: string };
+
+// Marka logoları tablosu sonradan eklendi; yoksa oluşturulur (sunucuda ayrıca kurulum gerekmez)
+export async function ensureBrandTable() {
+  await db().query(`CREATE TABLE IF NOT EXISTS brand_logos (
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    sort_order INT NOT NULL DEFAULT 0,
+    active TINYINT(1) NOT NULL DEFAULT 1,
+    name VARCHAR(80) NOT NULL,
+    image_url VARCHAR(500) NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  ) CHARACTER SET utf8mb4`);
+}
+
+export async function getBrandLogos(): Promise<BrandLogo[]> {
+  if (!dbOn()) return [];
+  try {
+    await ensureBrandTable();
+    const [rows] = await db().query<RowDataPacket[]>("SELECT * FROM brand_logos WHERE active = 1 AND image_url IS NOT NULL ORDER BY sort_order, id");
+    return rows.map((r) => ({ id: String(r.id), name: r.name, image: r.image_url }));
+  } catch (e) {
+    console.error("[cms] markalar okunamadı:", (e as Error).message);
     return [];
   }
 }

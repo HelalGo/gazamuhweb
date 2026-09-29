@@ -93,11 +93,11 @@ export function HeroSlider({ slides }: { slides: HeroSlide[] }) {
       {count > 1 && (
         <>
           <button onClick={() => go(i - 1)} aria-label="Önceki slayt"
-            className="absolute left-4 top-1/2 z-20 hidden h-12 w-12 -translate-y-1/2 place-items-center rounded-full bg-white/15 backdrop-blur transition hover:bg-white/30 md:grid">
+            className="absolute left-4 top-1/2 z-20 hidden h-12 w-12 -translate-y-1/2 place-items-center rounded-[4px] bg-white/15 backdrop-blur transition hover:bg-white/30 md:grid">
             <ChevronLeft />
           </button>
           <button onClick={() => go(i + 1)} aria-label="Sonraki slayt"
-            className="absolute right-4 top-1/2 z-20 hidden h-12 w-12 -translate-y-1/2 place-items-center rounded-full bg-white/15 backdrop-blur transition hover:bg-white/30 md:grid">
+            className="absolute right-4 top-1/2 z-20 hidden h-12 w-12 -translate-y-1/2 place-items-center rounded-[4px] bg-white/15 backdrop-blur transition hover:bg-white/30 md:grid">
             <ChevronRight />
           </button>
           <div className="absolute inset-x-0 bottom-8 z-20 flex justify-center gap-3 px-4">

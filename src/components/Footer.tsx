@@ -1,6 +1,10 @@
 import Image from "next/image";
+import Link from "next/link";
 import { Mail, MapPin, Phone } from "lucide-react";
-import { company, contact, footerLinks, nav } from "@/lib/site";
+import { company, contact, footerLinks, igdas, nav } from "@/lib/site";
+import { CookieSettingsButton } from "./CookieConsent";
+import { IgdasBadge } from "./IgdasBadge";
+import { SocialIcons } from "./SocialIcons";
 
 const info = [
   ["Ticaret Ünvanı", company.title],
@@ -9,6 +13,7 @@ const info = [
   ["MERSİS No", company.mersis],
   ["Ticaret Sicil No", company.tradeRegistryNo],
   ["Sicil Müdürlüğü", company.registry],
+  ["İGDAŞ Yetki No", igdas.no],
 ];
 
 export function Footer() {
@@ -41,11 +46,22 @@ export function Footer() {
             <h4 className="mb-4 text-sm font-bold text-primary">{title}</h4>
             <ul className="space-y-2 text-sm text-muted">
               {items.map((i) => (
-                <li key={i}><a href="#" className="hover:text-foreground">{i}</a></li>
+                <li key={i.label}><Link href={i.href} className="hover:text-foreground">{i.label}</Link></li>
               ))}
             </ul>
           </div>
         ))}
+      </div>
+
+      {/* İGDAŞ rozeti solda, sosyal medya sağda; aynı hizada */}
+      <div className="mx-auto w-full max-w-7xl px-4 md:px-6">
+        <div className="flex flex-col gap-6 border-t border-border py-8 sm:flex-row sm:items-center sm:justify-between">
+          <IgdasBadge size="md" className="w-fit rounded-[4px] border border-border bg-white px-4 py-3" />
+          <div className="flex flex-col gap-3 sm:items-end">
+            <h4 className="text-sm font-bold text-primary">Bizi takip edin</h4>
+            <SocialIcons itemClass="h-10 w-10 bg-white text-primary shadow-sm hover:bg-primary hover:text-white" />
+          </div>
+        </div>
       </div>
 
       <div className="mx-auto w-full max-w-7xl px-4 md:px-6">
@@ -64,8 +80,9 @@ export function Footer() {
           <p className="text-center md:text-left">© {new Date().getFullYear()} {company.title}. Tüm hakları saklıdır.</p>
           <ul className="flex flex-wrap justify-center gap-x-5 gap-y-1 text-white/80">
             {footerLinks["Sözleşmeler"].map((i) => (
-              <li key={i}><a href="#" className="hover:text-white">{i}</a></li>
+              <li key={i.label}><Link href={i.href} className="hover:text-white">{i.label}</Link></li>
             ))}
+            <li><CookieSettingsButton className="hover:text-white" /></li>
           </ul>
         </div>
       </div>

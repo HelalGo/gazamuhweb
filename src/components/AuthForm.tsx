@@ -6,8 +6,8 @@ import { login, register } from "@/app/(site)/actions";
 import { Breadcrumb } from "./Breadcrumb";
 import { useSite } from "./SiteProvider";
 
-const inputCls = "w-full rounded-xl bg-surface px-4 py-3 text-sm outline-none transition-shadow placeholder:text-muted focus:ring-2 focus:ring-accent/50";
-const box = "grid h-[18px] w-[18px] shrink-0 place-items-center rounded-[5px] bg-surface-alt text-transparent transition-colors peer-checked:bg-primary peer-checked:text-white peer-focus-visible:ring-2 peer-focus-visible:ring-accent";
+const inputCls = "w-full rounded-[4px] bg-surface px-4 py-3 text-sm outline-none transition-shadow placeholder:text-muted focus:ring-2 focus:ring-accent/50";
+const box = "grid h-[18px] w-[18px] shrink-0 place-items-center rounded-[4px] bg-surface-alt text-transparent transition-colors peer-checked:bg-primary peer-checked:text-white peer-focus-visible:ring-2 peer-focus-visible:ring-accent";
 const tick = (
   <svg viewBox="0 0 12 12" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
     <path d="M2.5 6.5l2.5 2.5 4.5-5.5" />
@@ -39,7 +39,7 @@ export function AuthForm({ mode, next }: { mode: "login" | "register"; next?: st
         <p className="mt-1 text-sm text-muted">
           {isLogin ? "Hesabınıza giriş yaparak siparişlerinizi ve favorilerinizi yönetin." : "Hesap oluşturarak sipariş verin, favorilerinizi ve yorumlarınızı yönetin."}
         </p>
-        {!enabled && <p className="mt-4 rounded-xl bg-amber-50 px-4 py-3 text-sm text-amber-800">Üyelik sistemi şu an kullanılamıyor.</p>}
+        {!enabled && <p className="mt-4 rounded-[4px] bg-amber-50 px-4 py-3 text-sm text-amber-800">Üyelik sistemi şu an kullanılamıyor.</p>}
 
         <form action={action} className="mt-8 space-y-5">
           {next && <input type="hidden" name="next" value={next} />}
@@ -79,12 +79,12 @@ export function AuthForm({ mode, next }: { mode: "login" | "register"; next?: st
             <label className="flex cursor-pointer items-start gap-2.5 text-xs leading-relaxed text-muted">
               <input type="checkbox" name="kvkk" required className="peer sr-only" />
               <span className={box + " mt-0.5"}>{tick}</span>
-              <span><a href="#" className="font-semibold text-accent hover:underline">KVKK Aydınlatma Metni</a>&apos;ni okudum ve kabul ediyorum.</span>
+              <span><a href="/kvkk-aydinlatma-metni" target="_blank" className="font-semibold text-accent hover:underline">KVKK Aydınlatma Metni</a>&apos;ni okudum ve kabul ediyorum.</span>
             </label>
           )}
 
-          {error && <p role="alert" className="rounded-xl bg-red-50 px-4 py-3 text-sm font-semibold text-red-700">{error}</p>}
-          <motion.button whileTap={{ scale: 0.98 }} disabled={pending || !enabled} className="w-full rounded-xl bg-primary py-3.5 text-sm font-bold text-white transition-colors hover:bg-primary/90 disabled:opacity-60">
+          {error && <p role="alert" className="rounded-[4px] bg-red-50 px-4 py-3 text-sm font-semibold text-red-700">{error}</p>}
+          <motion.button whileTap={{ scale: 0.98 }} disabled={pending || !enabled} className="w-full rounded-[4px] bg-primary py-3.5 text-sm font-bold text-white transition-colors hover:bg-primary/90 disabled:opacity-60">
             {pending ? "Lütfen bekleyin…" : isLogin ? "Giriş Yap" : "Üye Ol"}
           </motion.button>
         </form>

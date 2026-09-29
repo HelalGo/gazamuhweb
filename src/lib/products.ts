@@ -11,6 +11,7 @@ type Row = RowDataPacket & {
   id: number; slug: string; sku: string | null; name: string; brand: string | null; category: string | null;
   product_group: string | null; price: string; old_price: string | null; in_stock: number;
   description: string | null; specs: string | Record<string, string> | null; image_url: string | null;
+  images?: string | string[] | null; // galeri sütunu henüz eklenmemiş veritabanlarında yok
 };
 
 const fromRow = (r: Row): Product => ({
@@ -27,6 +28,7 @@ const fromRow = (r: Row): Product => ({
   description: r.description ?? "",
   specs: typeof r.specs === "string" ? JSON.parse(r.specs) : (r.specs ?? {}),
   imageUrl: r.image_url,
+  images: (typeof r.images === "string" ? JSON.parse(r.images) : r.images) ?? [],
 });
 
 // data/products.json (kazıma çıktısı) — veritabanı bağlanana kadar site bununla çalışır
@@ -48,6 +50,7 @@ async function fromFile(): Promise<Product[]> {
         description: p.description ?? "",
         specs: p.specs ?? {},
         imageUrl: null,
+        images: [],
       }));
   } catch {
     return sampleProducts;

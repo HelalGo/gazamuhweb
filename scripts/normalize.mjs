@@ -5,7 +5,6 @@ import { readFile, writeFile } from "node:fs/promises";
 const BRANDS = {
   "demir döküm": "Demirdöküm", demirdöküm: "Demirdöküm",
   "e.c.a.": "ECA", eca: "ECA",
-  franke: "Franke", teka: "Teka",
 };
 
 export function normalize(p) {

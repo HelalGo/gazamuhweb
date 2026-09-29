@@ -1,10 +1,10 @@
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { RowDataPacket } from "mysql2";
 import { db } from "@/lib/db";
 import { HERO_MOBILE_REQ, HERO_REQ } from "@/lib/layouts";
 import { saveSlide } from "../../../cms-actions";
-import { DeleteForm, ImagePreview, Label, Notice, SizeBadge, field, fileCls } from "../../_ui";
+import { SubmitButton } from "../../_client";
+import { DeleteForm, ImagePreview, Label, Notice, PageHead, SizeBadge, Toggle, btnPrimary, field, fileCls } from "../../_ui";
 
 export default async function SlideForm({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ err?: string }> }) {
   const { id } = await params;
@@ -18,10 +18,9 @@ export default async function SlideForm({ params, searchParams }: { params: Prom
   }
   return (
     <div className="mx-auto max-w-3xl">
-      <Link href="/admin/slider" className="text-sm text-muted hover:text-foreground">← Slider</Link>
-      <h1 className="mb-6 mt-2 text-2xl font-extrabold">{isNew ? "Yeni Slayt" : "Slaytı Düzenle"}</h1>
+      <PageHead title={isNew ? "Yeni Slayt" : "Slaytı Düzenle"} back={{ href: "/admin/slider", label: "Slider" }} />
       <Notice err={err} />
-      <form action={saveSlide} className="space-y-6">
+      <form action={saveSlide} className="space-y-6 rounded-2xl border border-border bg-white p-5 shadow-sm md:p-6">
         {!isNew && <input type="hidden" name="id" value={id} />}
 
         <section className="space-y-3">
@@ -60,8 +59,8 @@ export default async function SlideForm({ params, searchParams }: { params: Prom
           ))}
         </section>
 
-        <label className="flex items-center gap-2 text-sm font-semibold"><input type="checkbox" name="active" defaultChecked={isNew ? true : !!r.active} className="h-4 w-4 accent-[#1a3e85]" /> Sitede yayınla</label>
-        <button className="rounded-xl bg-primary px-8 py-3 text-sm font-bold text-white">Kaydet</button>
+        <Toggle name="active" defaultChecked={isNew ? true : !!r.active} label="Sitede yayınla" />
+        <SubmitButton className={btnPrimary}>Kaydet</SubmitButton>
       </form>
       {!isNew && <DeleteForm table="hero_slides" id={Number(id)} />}
     </div>

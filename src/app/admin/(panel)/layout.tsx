@@ -1,34 +1,28 @@
-import Image from "next/image";
-import Link from "next/link";
-import { logout } from "../actions";
+import type { RowDataPacket } from "mysql2";
 import { requireAdmin } from "@/lib/auth";
+import { db } from "@/lib/db";
+import { Sidebar } from "./Sidebar";
 
 export const dynamic = "force-dynamic";
 
 export default async function PanelLayout({ children }: { children: React.ReactNode }) {
   const admin = await requireAdmin();
+  let pending = 0;
+  let leads = 0;
+  try {
+    const [[r]] = await db().query<RowDataPacket[]>("SELECT COUNT(*) AS n FROM orders WHERE status = 'pending'");
+    pending = r.n;
+  } catch {}
+  try {
+    const [[r]] = await db().query<RowDataPacket[]>("SELECT COUNT(*) AS n FROM leads WHERE handled = 0");
+    leads = r.n;
+  } catch {} // tablo ilk talep geldiğinde oluşur
   return (
-    <>
-      <header className="bg-surface">
-        <div className="mx-auto flex h-16 w-full max-w-7xl items-center gap-6 px-4 md:px-6">
-          <Link href="/admin/products"><Image src="/brand/logo.png" alt="GAZ-A" width={242} height={58} className="h-9 w-auto" /></Link>
-          <nav className="flex gap-1 text-sm font-semibold">
-            <Link href="/admin/products" className="rounded-lg px-3 py-2 hover:bg-white">Ürünler</Link>
-            <Link href="/admin/orders" className="rounded-lg px-3 py-2 hover:bg-white">Siparişler</Link>
-            <Link href="/admin/reviews" className="rounded-lg px-3 py-2 hover:bg-white">Yorumlar</Link>
-            <Link href="/admin/slider" className="rounded-lg px-3 py-2 hover:bg-white">Slider</Link>
-            <Link href="/admin/vitrin" className="rounded-lg px-3 py-2 hover:bg-white">Vitrin</Link>
-            <Link href="/admin/kampanyalar" className="rounded-lg px-3 py-2 hover:bg-white">Kampanyalar</Link>
-            <Link href="/admin/images" className="rounded-lg px-3 py-2 hover:bg-white">Toplu Görsel</Link>
-            <Link href="/" target="_blank" className="rounded-lg px-3 py-2 text-muted hover:bg-white">Siteyi gör ↗</Link>
-          </nav>
-          <div className="ml-auto flex items-center gap-4 text-sm">
-            <span className="hidden text-muted sm:block">{admin.name || admin.email}</span>
-            <form action={logout}><button className="font-semibold text-accent hover:underline">Çıkış</button></form>
-          </div>
-        </div>
-      </header>
-      <main className="mx-auto w-full max-w-7xl px-4 py-8 md:px-6">{children}</main>
-    </>
+    <div className="min-h-screen bg-slate-50">
+      <Sidebar name={admin.name} email={admin.email} pendingOrders={pending} openLeads={leads} />
+      <main className="px-4 py-6 md:px-8 md:py-8 lg:ml-64">
+        <div className="mx-auto w-full max-w-6xl">{children}</div>
+      </main>
+    </div>
   );
 }

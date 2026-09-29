@@ -4,7 +4,7 @@ import { CAMPAIGN_LAYOUTS, type CampaignLayout } from "@/lib/layouts";
 import type { CampaignItem } from "@/lib/cms";
 import { saveCampaign } from "../../../cms-actions";
 
-const field = "w-full rounded-xl bg-surface px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-accent/50";
+const field = "w-full rounded-xl border border-border bg-white px-4 py-2.5 text-sm outline-none transition focus:border-accent focus:ring-4 focus:ring-accent/15";
 const fileCls = "block w-full text-sm file:mr-4 file:rounded-full file:border-0 file:bg-surface file:px-4 file:py-2 file:text-sm file:font-semibold hover:file:bg-surface-alt";
 
 // Yerleşimin küçük çizimi (hangi görsel nereye gelir)
@@ -28,7 +28,7 @@ export function CampaignForm({ id, title, layout: initial, items, active, err }:
   const sameAsSaved = layout === initial;
 
   return (
-    <form action={saveCampaign} className="space-y-6">
+    <form action={saveCampaign} className="space-y-6 rounded-2xl border border-border bg-white p-5 shadow-sm md:p-6">
       {id && <input type="hidden" name="id" value={id} />}
       {err && <p role="alert" className="rounded-xl bg-red-50 px-4 py-3 text-sm font-semibold text-red-700">{err}</p>}
 
@@ -76,7 +76,7 @@ export function CampaignForm({ id, title, layout: initial, items, active, err }:
 
       {!sameAsSaved && id && <p className="text-xs text-amber-700">Yerleşimi değiştirdiniz: tüm görselleri yeniden yüklemeniz gerekir.</p>}
       <label className="flex items-center gap-2 text-sm font-semibold"><input type="checkbox" name="active" defaultChecked={active} className="h-4 w-4 accent-[#1a3e85]" /> Sitede yayınla</label>
-      <button className="rounded-xl bg-primary px-8 py-3 text-sm font-bold text-white">Kaydet</button>
+      <button className="inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-sm font-bold text-white shadow-sm transition hover:bg-[#15336d]">Kaydet</button>
     </form>
   );
 }

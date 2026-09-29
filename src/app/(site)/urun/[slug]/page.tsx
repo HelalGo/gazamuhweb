@@ -1,16 +1,17 @@
 import type { Metadata } from "next";
-import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { BadgeCheck } from "lucide-react";
+import { BadgeCheck, Info, Phone, Wrench } from "lucide-react";
 import { AddToCart } from "@/components/AddToCart";
 import { Breadcrumb } from "@/components/Breadcrumb";
 import { FavoriteButton } from "@/components/FavoriteButton";
+import { ProductGallery } from "@/components/ProductGallery";
 import { ReviewForm } from "@/components/ReviewForm";
 import { Stars } from "@/components/Stars";
 import { dbConfigured, getUser } from "@/lib/customer";
 import { getProduct } from "@/lib/products";
 import { getReviews, reviewEligibility, type Eligibility } from "@/lib/reviews";
+import { contact, igdas } from "@/lib/site";
 import { slugify } from "@/lib/slug";
 import { tl } from "@/lib/utils";
 
@@ -39,14 +40,15 @@ export default async function ProductPage({ params, searchParams }: Props) {
       <Breadcrumb crumbs={[{ label: "Ana Sayfa", href: "/" }, { label: p.category, href: `/${slugify(p.category)}` }, { label: p.name }]} />
 
       <div className="mt-8 grid gap-10 lg:grid-cols-2">
-        <div className="relative aspect-square overflow-hidden rounded-3xl bg-surface">
-          {p.imageUrl && <Image src={p.imageUrl} alt={p.name} fill sizes="50vw" className="object-contain p-8" unoptimized />}
+        <ProductGallery images={[p.imageUrl, ...p.images].filter((x): x is string => !!x)} name={p.name}>
           <FavoriteButton id={p.id} className="absolute right-4 top-4 !h-11 !w-11" />
-        </div>
+        </ProductGallery>
 
-        <div>
-          <p className="text-sm text-muted">{p.brand}</p>
-          <h1 className="mt-1 text-2xl font-extrabold leading-snug md:text-3xl">{p.name}</h1>
+        <div className="lg:pl-4">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-accent">
+            <Link href={`/${slugify(p.category)}`} className="hover:text-primary">{p.category}</Link> · {p.brand}
+          </p>
+          <h1 className="mt-3 text-3xl font-light leading-tight tracking-tight md:text-4xl">{p.name}</h1>
           {summary.count > 0 && (
             <a href="#yorumlar" className="mt-2 inline-flex items-center gap-2 text-sm text-muted hover:text-foreground">
               <Stars value={summary.avg} /> <span className="font-semibold text-foreground">{summary.avg.toFixed(1)}</span> ({summary.count} yorum)
@@ -54,21 +56,38 @@ export default async function ProductPage({ params, searchParams }: Props) {
           )}
           {p.sku && <p className="mt-2 text-xs text-muted">Ürün kodu: {p.sku}</p>}
 
-          <div className="mt-6 flex items-end gap-3">
+          <div className="mt-6 flex items-center gap-3">
             {p.price > 0 ? (
               <>
-                <span className="text-3xl font-extrabold text-primary">{tl(p.price)}</span>
-                {p.oldPrice && p.oldPrice > p.price && <span className="pb-1 text-muted line-through">{tl(p.oldPrice)}</span>}
+                <span className="text-3xl font-bold text-primary">{tl(p.price)}</span>
+                {p.oldPrice && p.oldPrice > p.price && (
+                  <>
+                    <span className="text-muted line-through">{tl(p.oldPrice)}</span>
+                    <span className="rounded-[4px] bg-accent/10 px-2 py-1 text-xs font-bold text-accent">-%{Math.round((1 - p.price / p.oldPrice) * 100)}</span>
+                  </>
+                )}
               </>
             ) : (
-              <span className="text-2xl font-extrabold text-primary">Fiyat için arayın</span>
+              <span className="text-2xl font-bold text-primary">Fiyat için arayın</span>
             )}
           </div>
           <p className={`mt-2 text-sm font-semibold ${p.inStock ? "text-green-600" : "text-red-600"}`}>
             {p.inStock ? "Stokta var" : "Stokta yok"}
           </p>
 
-          <div className="mt-6"><AddToCart product={p} /></div>
+          <div className="mt-6 flex flex-col gap-3 sm:flex-row">
+            <AddToCart product={p} />
+            <Link href={`/bilgi-al?urun=${encodeURIComponent(p.slug)}`}
+              className="inline-flex items-center justify-center gap-2 rounded-[4px] border-2 border-primary py-3 text-sm font-bold text-primary transition-colors hover:bg-primary hover:text-white sm:px-8">
+              <Info size={18} /> Bilgi Al
+            </Link>
+          </div>
+
+          <ul className="mt-8 space-y-3 border-t border-border pt-6 text-sm text-foreground/80">
+            <li className="flex items-center gap-3"><Wrench size={17} className="shrink-0 text-accent" />Kurulum ve montaj hizmeti</li>
+            <li className="flex items-center gap-3"><BadgeCheck size={17} className="shrink-0 text-accent" />{igdas.title} · Yetki No {igdas.no}</li>
+            <li className="flex items-center gap-3"><Phone size={17} className="shrink-0 text-accent" />Ürün danışmanlığı: <a href={`tel:+9${contact.phone.replace(/\s/g, "")}`} className="font-semibold hover:text-primary">{contact.phone}</a></li>
+          </ul>
 
           {p.description && (
             <section className="mt-10">
@@ -107,7 +126,7 @@ export default async function ProductPage({ params, searchParams }: Props) {
 
           <div className="grid gap-10 lg:grid-cols-[1fr_420px]">
             <div>
-              {yorum && <p role="status" className="mb-6 rounded-xl bg-green-50 px-4 py-3 text-sm font-semibold text-green-700">Yorumunuz için teşekkürler, yayınlandı.</p>}
+              {yorum && <p role="status" className="mb-6 rounded-[4px] bg-green-50 px-4 py-3 text-sm font-semibold text-green-700">Yorumunuz için teşekkürler, yayınlandı.</p>}
               {list.length ? (
                 <ul className="divide-y divide-border">
                   {list.map((r) => (
@@ -123,21 +142,21 @@ export default async function ProductPage({ params, searchParams }: Props) {
                   ))}
                 </ul>
               ) : (
-                <p className="rounded-3xl bg-surface p-10 text-center text-sm text-muted">Bu ürün için henüz değerlendirme yok.</p>
+                <p className="rounded-[4px] bg-surface p-10 text-center text-sm text-muted">Bu ürün için henüz değerlendirme yok.</p>
               )}
             </div>
 
             <div>
               {eligible === "ok" && <ReviewForm productId={p.id} />}
               {eligible === "guest" && (
-                <p className="rounded-3xl bg-surface p-6 text-sm leading-relaxed text-muted">
+                <p className="rounded-[4px] bg-surface p-6 text-sm leading-relaxed text-muted">
                   Ürünleri değerlendirmek için <Link href={`/giris?next=${encodeURIComponent(`/urun/${p.slug}`)}`} className="font-semibold text-primary hover:underline">giriş yapın</Link>.
                   Yalnızca satın alan müşteriler yorum yapabilir.
                 </p>
               )}
-              {eligible === "not-purchased" && <p className="rounded-3xl bg-surface p-6 text-sm leading-relaxed text-muted">Bu ürünü değerlendirebilmek için satın almış olmanız gerekir.</p>}
-              {eligible === "waiting" && <p className="rounded-3xl bg-surface p-6 text-sm leading-relaxed text-muted">Siparişiniz teslim edildikten sonra bu ürünü değerlendirebilirsiniz.</p>}
-              {eligible === "already" && <p className="rounded-3xl bg-surface p-6 text-sm leading-relaxed text-green-700">Bu ürünü zaten değerlendirdiniz, teşekkürler.</p>}
+              {eligible === "not-purchased" && <p className="rounded-[4px] bg-surface p-6 text-sm leading-relaxed text-muted">Bu ürünü değerlendirebilmek için satın almış olmanız gerekir.</p>}
+              {eligible === "waiting" && <p className="rounded-[4px] bg-surface p-6 text-sm leading-relaxed text-muted">Siparişiniz teslim edildikten sonra bu ürünü değerlendirebilirsiniz.</p>}
+              {eligible === "already" && <p className="rounded-[4px] bg-surface p-6 text-sm leading-relaxed text-green-700">Bu ürünü zaten değerlendirdiniz, teşekkürler.</p>}
             </div>
           </div>
         </section>

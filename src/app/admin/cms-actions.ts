@@ -2,14 +2,15 @@
 import type { ResultSetHeader, RowDataPacket } from "mysql2";
 import { redirect } from "next/navigation";
 import { requireAdmin } from "@/lib/auth";
+import { ensureBrandTable } from "@/lib/cms";
 import { db } from "@/lib/db";
-import { CAMPAIGN_LAYOUTS, HERO_MOBILE_REQ, HERO_REQ, TILE_REQ, safeUrl, type CampaignLayout } from "@/lib/layouts";
+import { BRAND_REQ, CAMPAIGN_LAYOUTS, HERO_MOBILE_REQ, HERO_REQ, TILE_REQ, safeUrl, type CampaignLayout } from "@/lib/layouts";
 import { removeImage, saveImage, type Req } from "@/lib/uploads";
 
 const str = (f: FormData, k: string, max: number) => String(f.get(k) ?? "").trim().slice(0, max) || null;
 const back = (path: string, err: string): never => redirect(`${path}?err=${encodeURIComponent(err)}`);
 
-type Table = "hero_slides" | "showcase_tiles" | "campaign_blocks";
+type Table = "hero_slides" | "showcase_tiles" | "campaign_blocks" | "brand_logos";
 
 async function nextOrder(table: Table) {
   const [r] = await db().query<RowDataPacket[]>(`SELECT COALESCE(MAX(sort_order), 0) + 1 AS n FROM ${table}`);
@@ -77,6 +78,27 @@ export async function saveTile(f: FormData) {
   redirect("/admin/vitrin?saved=1");
 }
 
+/* ---------- Marka logoları ---------- */
+export async function saveBrand(f: FormData) {
+  await requireAdmin();
+  await ensureBrandTable();
+  const id = Number(f.get("id")) || null;
+  const errPath = id ? `/admin/markalar/${id}` : "/admin/markalar/new";
+  const [old] = id ? await db().query<RowDataPacket[]>("SELECT image_url FROM brand_logos WHERE id = ?", [id]) : [[] as RowDataPacket[]];
+
+  const name = str(f, "name", 80);
+  if (!name) back(errPath, "Marka adı zorunlu.");
+  const image = await upload(f, "image", BRAND_REQ, errPath);
+  if (!id && !image) back(errPath, "Marka için bir logo yüklemelisiniz.");
+
+  const v: Record<string, unknown> = { name, active: f.get("active") ? 1 : 0 };
+  if (image) { v.image_url = image; await removeImage(old[0]?.image_url); }
+
+  if (id) await db().query("UPDATE brand_logos SET ? WHERE id = ?", [v, id]);
+  else await db().query("INSERT INTO brand_logos SET ?", [{ ...v, sort_order: await nextOrder("brand_logos") }]);
+  redirect("/admin/markalar?saved=1");
+}
+
 /* ---------- Kampanya blokları ---------- */
 export async function saveCampaign(f: FormData) {
   await requireAdmin();
@@ -109,7 +131,9 @@ export async function saveCampaign(f: FormData) {
 }
 
 /* ---------- Ortak: sil / sırala / göster-gizle ---------- */
-const PATHS: Record<Table, string> = { hero_slides: "/admin/slider", showcase_tiles: "/admin/vitrin", campaign_blocks: "/admin/kampanyalar" };
+const PATHS: Record<Table, string> = {
+  hero_slides: "/admin/slider", showcase_tiles: "/admin/vitrin", campaign_blocks: "/admin/kampanyalar", brand_logos: "/admin/markalar",
+};
 const isTable = (t: unknown): t is Table => typeof t === "string" && t in PATHS;
 
 async function imagesOf(table: Table, id: number): Promise<string[]> {

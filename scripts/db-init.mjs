@@ -24,6 +24,7 @@ await c.query(`CREATE TABLE IF NOT EXISTS products (
   description TEXT NULL,
   specs JSON NULL,
   image_url VARCHAR(500) NULL,
+  images JSON NULL, -- kapak dışındaki ek görseller
   source_image_url VARCHAR(500) NULL,
   source_url VARCHAR(500) NULL,
   active TINYINT(1) NOT NULL DEFAULT 1,
@@ -65,6 +66,15 @@ await c.query(`CREATE TABLE IF NOT EXISTS hero_slides (
   text VARCHAR(400) NULL,
   btn1_label VARCHAR(60) NULL, btn1_url VARCHAR(500) NULL,
   btn2_label VARCHAR(60) NULL, btn2_url VARCHAR(500) NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+) CHARACTER SET utf8mb4`);
+
+await c.query(`CREATE TABLE IF NOT EXISTS brand_logos (
+  id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  sort_order INT NOT NULL DEFAULT 0,
+  active TINYINT(1) NOT NULL DEFAULT 1,
+  name VARCHAR(80) NOT NULL,
+  image_url VARCHAR(500) NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 ) CHARACTER SET utf8mb4`);
 

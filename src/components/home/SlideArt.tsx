@@ -6,7 +6,6 @@ export function SlideArt({ variant }: { variant: Slide["art"] }) {
   const stops: Record<Slide["art"], [string, string, string]> = {
     klima: ["#0b1d45", "#1a3e85", "#2099d0"],
     kombi: ["#0b1d45", "#1a3e85", "#e0793a"],
-    ankastre: ["#0b1d45", "#16346f", "#4b7bd6"],
     proje: ["#0b1d45", "#1a3e85", "#2099d0"],
   };
   const [a, b, c] = stops[variant];
@@ -36,14 +35,6 @@ export function SlideArt({ variant }: { variant: Slide["art"] }) {
           <path key={i} d={`M 0 ${620 + i * 46} C 400 ${520 + i * 46}, 800 ${760 + i * 46}, 1600 ${600 + i * 46}`}
             fill="none" stroke="#fff" strokeOpacity={0.2 - i * 0.03} strokeWidth="2" />
         ))}
-
-      {variant === "ankastre" &&
-        Array.from({ length: 6 }).flatMap((_, r) =>
-          Array.from({ length: 5 }).map((__, c) => (
-            <rect key={`${r}-${c}`} x={980 + c * 130} y={120 + r * 130} width="104" height="104" rx="16"
-              fill="#fff" fillOpacity={0.05 + ((r + c) % 3) * 0.035} />
-          ))
-        )}
 
       {variant === "proje" &&
         Array.from({ length: 14 }).map((_, i) => (

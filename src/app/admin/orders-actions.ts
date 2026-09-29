@@ -24,3 +24,15 @@ export async function deleteReview(f: FormData) {
   await db().query("DELETE FROM reviews WHERE id = ?", [Number(f.get("id"))]);
   redirect("/admin/reviews");
 }
+
+export async function toggleLead(f: FormData) {
+  await requireAdmin();
+  await db().query("UPDATE leads SET handled = 1 - handled WHERE id = ?", [Number(f.get("id"))]);
+  redirect("/admin/talepler");
+}
+
+export async function deleteLead(f: FormData) {
+  await requireAdmin();
+  await db().query("DELETE FROM leads WHERE id = ?", [Number(f.get("id"))]);
+  redirect("/admin/talepler");
+}

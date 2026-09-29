@@ -2,7 +2,7 @@
 import { useActionState } from "react";
 import { login } from "../actions";
 
-const cls = "w-full rounded-xl bg-surface px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-accent/50";
+const cls = "w-full rounded-xl border border-border bg-white px-4 py-3 text-sm outline-none transition focus:border-accent focus:ring-4 focus:ring-accent/15";
 
 export function LoginForm() {
   const [error, action, pending] = useActionState(login, null);

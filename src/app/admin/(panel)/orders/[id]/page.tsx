@@ -1,10 +1,11 @@
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { RowDataPacket } from "mysql2";
+import { Mail, MapPin, Phone } from "lucide-react";
 import { db } from "@/lib/db";
 import { REVIEW_STATUSES, STATUS, isStatus, orderNo } from "@/lib/orders";
 import { tl } from "@/lib/utils";
 import { updateOrderStatus } from "../../../orders-actions";
+import { Notice, PageHead, card } from "../../_ui";
 
 export default async function AdminOrder({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ saved?: string }> }) {
   const id = Number((await params).id);
@@ -16,42 +17,50 @@ export default async function AdminOrder({ params, searchParams }: { params: Pro
   const st = isStatus(o.status) ? o.status : "pending";
 
   return (
-    <div className="mx-auto max-w-3xl">
-      <Link href="/admin/orders" className="text-sm text-muted hover:text-foreground">← Siparişler</Link>
-      <h1 className="mb-6 mt-2 text-2xl font-extrabold">Sipariş {orderNo(id)}</h1>
-      {saved && <p role="status" className="mb-6 rounded-xl bg-green-50 px-4 py-3 text-sm font-semibold text-green-700">Durum güncellendi.</p>}
+    <>
+      <PageHead title={`Sipariş ${orderNo(id)}`} sub={new Date(o.created_at).toLocaleString("tr-TR", { dateStyle: "long", timeStyle: "short" })} back={{ href: "/admin/orders", label: "Siparişler" }}>
+        <span className={`rounded-full px-3 py-1.5 text-sm font-bold ${STATUS[st].cls}`}>{STATUS[st].label}</span>
+      </PageHead>
+      <Notice saved={saved} text="Sipariş durumu güncellendi." />
 
-      <form action={updateOrderStatus} className="mb-8 flex flex-wrap items-end gap-3 rounded-2xl bg-surface p-5">
-        <input type="hidden" name="id" value={id} />
-        <label className="block">
-          <span className="mb-1.5 block text-sm font-semibold">Sipariş durumu</span>
-          <select name="status" defaultValue={st} className="rounded-xl bg-white px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-accent/50">
-            {(Object.keys(STATUS) as (keyof typeof STATUS)[]).map((s) => <option key={s} value={s}>{STATUS[s].label}</option>)}
-          </select>
-        </label>
-        <button className="rounded-xl bg-primary px-6 py-3 text-sm font-bold text-white">Güncelle</button>
-        <p className="basis-full text-xs text-muted">
-          Müşteri, sipariş <strong>{REVIEW_STATUSES.map((s) => STATUS[s].label).join(" / ")}</strong> durumuna geçtikten sonra ürüne yorum yapabilir.
-        </p>
-      </form>
+      <div className="grid gap-6 lg:grid-cols-3">
+        <div className="space-y-6 lg:col-span-2">
+          <section className={card}>
+            <h2 className="mb-3 font-bold">Durumu değiştir</h2>
+            <div className="flex flex-wrap gap-2">
+              {(Object.keys(STATUS) as (keyof typeof STATUS)[]).map((s) => (
+                <form key={s} action={updateOrderStatus}>
+                  <input type="hidden" name="id" value={id} /><input type="hidden" name="status" value={s} />
+                  <button disabled={s === st} className={`rounded-xl px-4 py-2 text-sm font-semibold transition ${s === st ? `${STATUS[s].cls} ring-2 ring-current` : "border border-border bg-white hover:bg-surface"}`}>{STATUS[s].label}</button>
+                </form>
+              ))}
+            </div>
+            <p className="mt-3 text-xs text-muted">Müşteri, sipariş <strong>{REVIEW_STATUSES.map((s) => STATUS[s].label).join(" / ")}</strong> durumuna geçtikten sonra ürüne yorum yapabilir.</p>
+          </section>
 
-      <section className="mb-8 rounded-2xl bg-surface p-5 text-sm">
-        <h2 className="mb-2 font-bold">Müşteri</h2>
-        <p className="font-semibold">{o.full_name}</p>
-        <p className="text-muted"><a href={`tel:${o.phone}`} className="hover:text-foreground">{o.phone}</a> · <a href={`mailto:${o.email}`} className="hover:text-foreground">{o.email}</a></p>
-        <p className="mt-2 whitespace-pre-line text-muted">{o.address}, {o.city}</p>
-        {o.note && <p className="mt-2 text-muted">Not: {o.note}</p>}
-        <p className="mt-2 text-xs text-muted">{new Date(o.created_at).toLocaleString("tr-TR")}</p>
-      </section>
+          <section className={card}>
+            <h2 className="mb-2 font-bold">Ürünler</h2>
+            <ul className="divide-y divide-border text-sm">
+              {items.map((i, n) => (
+                <li key={n} className="flex justify-between gap-4 py-3">
+                  <span><span className="mr-2 rounded-md bg-surface px-2 py-0.5 text-xs font-bold">{i.qty}×</span>{i.name}</span>
+                  <span className="whitespace-nowrap font-semibold">{tl(Number(i.price) * i.qty)}</span>
+                </li>
+              ))}
+            </ul>
+            <p className="mt-2 flex justify-between border-t border-border pt-4 text-lg font-extrabold"><span>Toplam</span><span className="text-primary">{tl(Number(o.total))}</span></p>
+          </section>
+        </div>
 
-      <ul className="divide-y divide-border text-sm">
-        {items.map((i, n) => (
-          <li key={n} className="flex justify-between gap-4 py-3">
-            <span>{i.qty} × {i.name}</span><span className="font-semibold">{tl(Number(i.price) * i.qty)}</span>
-          </li>
-        ))}
-      </ul>
-      <p className="mt-2 flex justify-between border-t border-border pt-4 text-lg font-extrabold"><span>Toplam</span><span className="text-primary">{tl(Number(o.total))}</span></p>
-    </div>
+        <section className={`${card} h-fit space-y-3 text-sm`}>
+          <h2 className="font-bold">Müşteri</h2>
+          <p className="text-base font-semibold">{o.full_name}</p>
+          <a href={`tel:${o.phone}`} className="flex items-center gap-2 text-muted hover:text-foreground"><Phone size={16} />{o.phone}</a>
+          <a href={`mailto:${o.email}`} className="flex items-center gap-2 break-all text-muted hover:text-foreground"><Mail size={16} />{o.email}</a>
+          <p className="flex gap-2 text-muted"><MapPin size={16} className="mt-0.5 shrink-0" /><span className="whitespace-pre-line">{o.address}, {o.city}</span></p>
+          {o.note && <p className="rounded-xl bg-amber-50 p-3 text-amber-900"><strong>Not:</strong> {o.note}</p>}
+        </section>
+      </div>
+    </>
   );
 }

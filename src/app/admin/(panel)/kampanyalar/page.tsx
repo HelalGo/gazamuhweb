@@ -8,7 +8,7 @@ export default async function CampaignsAdmin({ searchParams }: { searchParams: P
   const [rows] = await db().query<RowDataPacket[]>("SELECT * FROM campaign_blocks ORDER BY sort_order, id");
   return (
     <>
-      <PageHead title="Kampanya Afişleri" sub="Ana sayfada gösterilen afiş blokları. Her blok için bir yerleşim seçersiniz (tek geniş, ikili, üçlü…); yerleşime göre yüklemeniz gereken görsel boyutları formda yazar." newHref="/admin/kampanyalar/new" newLabel="+ Yeni Kampanya" />
+      <PageHead title="Kampanya Afişleri" sub="Ana sayfada gösterilen afiş blokları. Her blok için bir yerleşim seçersiniz (tek geniş, ikili, üçlü…); yerleşime göre yüklemeniz gereken görsel boyutları formda yazar." newHref="/admin/kampanyalar/new" newLabel="Yeni Kampanya" />
       <Notice saved={saved} />
       <AdminList table="campaign_blocks" base="/admin/kampanyalar" empty="Henüz kampanya eklenmemiş."
         rows={rows.map((r) => {

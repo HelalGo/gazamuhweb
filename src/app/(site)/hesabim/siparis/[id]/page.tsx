@@ -32,7 +32,7 @@ export default async function OrderDetail({ params }: { params: Promise<{ id: st
       <Breadcrumb crumbs={[{ label: "Ana Sayfa", href: "/" }, { label: "Hesabım", href: "/hesabim" }, { label: orderNo(id) }]} />
       <div className="mb-8 mt-6 flex flex-wrap items-center justify-between gap-3">
         <h1 className="text-2xl font-extrabold">Sipariş {orderNo(id)}</h1>
-        <span className={`rounded-full px-3 py-1 text-xs font-bold ${st.cls}`}>{st.label}</span>
+        <span className={`rounded-[4px] px-3 py-1 text-xs font-bold ${st.cls}`}>{st.label}</span>
       </div>
 
       <ul className="divide-y divide-border">
@@ -55,7 +55,7 @@ export default async function OrderDetail({ params }: { params: Promise<{ id: st
       </ul>
       <p className="mt-2 flex justify-between border-t border-border pt-4 text-lg font-extrabold"><span>Toplam</span><span className="text-primary">{tl(Number(o.total))}</span></p>
 
-      <section className="mt-10 rounded-3xl bg-surface p-6 text-sm">
+      <section className="mt-10 rounded-[4px] bg-surface p-6 text-sm">
         <h2 className="mb-3 font-bold">Teslimat Bilgileri</h2>
         <p className="font-semibold">{o.full_name}</p>
         <p className="text-muted">{o.phone} · {o.email}</p>

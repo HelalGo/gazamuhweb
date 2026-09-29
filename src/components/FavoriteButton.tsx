@@ -12,7 +12,7 @@ export function FavoriteButton({ id, className = "" }: { id: string; className?:
       onClick={() => toggleFav(id)}
       aria-pressed={on}
       aria-label={on ? "Favorilerimden çıkar" : "Favorilerime ekle"}
-      className={`grid h-9 w-9 place-items-center rounded-full bg-white/90 shadow-sm backdrop-blur transition hover:scale-110 ${className}`}
+      className={`grid h-9 w-9 place-items-center rounded-[4px] bg-white/90 shadow-sm backdrop-blur transition hover:scale-110 ${className}`}
     >
       <Heart size={18} className={on ? "fill-red-500 text-red-500" : "text-foreground/70"} />
     </button>

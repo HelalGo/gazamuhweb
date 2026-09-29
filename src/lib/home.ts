@@ -10,7 +10,7 @@ export type Slide = {
   // Kendi görselinizi kullanmak için dosyayı public/slides/ içine koyup yolunu yazın (örn. "/slides/klima.jpg").
   // Boş bırakılırsa aşağıdaki "art" adlı yerleşik tasarım gösterilir.
   image?: string;
-  art: "klima" | "kombi" | "ankastre" | "proje";
+  art: "klima" | "kombi" | "proje";
 };
 
 const wa = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(WHATSAPP_MESSAGE)}`;
@@ -29,12 +29,6 @@ export const slides: Slide[] = [
     cta: { label: "Kombileri İncele", href: "/kombi" }, cta2: { label: "Tüm Ürünler", href: "/urunler" },
   },
   {
-    id: "ankastre", art: "ankastre", eyebrow: "Ankastre",
-    title: "Mutfağınıza şık ve fonksiyonel dokunuş",
-    text: "Ocak, fırın ve davlumbaz gruplarında seçkin ankastre ürünler.",
-    cta: { label: "Ankastreleri İncele", href: "/ankastre" }, cta2: { label: "Tüm Ürünler", href: "/urunler" },
-  },
-  {
     id: "proje", art: "proje", eyebrow: "Proje ve Kurulum",
     title: "Isıtma ve soğutmada mühendislik desteği",
     text: "Proje yönetimi, kurulum, bakım ve onarım hizmetleri için bize ulaşın.",
@@ -43,9 +37,21 @@ export const slides: Slide[] = [
 ];
 
 export const services = [
-  { icon: "clipboard", title: "Proje ve Keşif", text: "Mekânınıza uygun kapasite ve sistem seçimi için proje ve keşif desteği sunuyoruz." },
-  { icon: "wrench", title: "Kurulum ve Montaj", text: "Isıtma, havalandırma, soğutma ve iklimlendirme sistemlerinin kurulumunu yapıyoruz." },
-  { icon: "shield", title: "Bakım ve Onarım", text: "Kombi, klima ve ilgili sistemlerin periyodik bakım ve onarım hizmetini veriyoruz." },
+  {
+    icon: "clipboard", title: "Proje ve Keşif",
+    text: "Mekânınıza uygun kapasite ve sistem seçimi için proje ve keşif desteği sunuyoruz.",
+    points: ["Yerinde keşif ve ihtiyaç analizi", "Kapasite hesabı ve cihaz seçimi", "Proje çizimi ve onay süreçleri"],
+  },
+  {
+    icon: "wrench", title: "Kurulum ve Montaj",
+    text: "Isıtma, havalandırma, soğutma ve iklimlendirme sistemlerinin kurulumunu yapıyoruz.",
+    points: ["Kombi, klima ve ısı pompası montajı", "Tesisat ve radyatör uygulamaları", "Devreye alma ve kullanım bilgilendirmesi"],
+  },
+  {
+    icon: "shield", title: "Bakım ve Onarım",
+    text: "Kombi, klima ve ilgili sistemlerin periyodik bakım ve onarım hizmetini veriyoruz.",
+    points: ["Periyodik kombi ve klima bakımı", "Arıza tespiti ve onarım", "Parça değişimi ve servis desteği"],
+  },
 ] as const;
 
 export { wa as whatsappUrl };

@@ -1,9 +1,9 @@
 import { Campaigns } from "@/components/home/Campaigns";
 import { HeroSlider } from "@/components/home/HeroSlider";
 import { ProductTabs, type Group } from "@/components/home/ProductTabs";
-import { Brands, CtaBand, ProductRow, Services, Stats } from "@/components/home/Sections";
+import { Brands, CtaBand, Deals, Igdas, Services, Stats } from "@/components/home/Sections";
 import { Showcase } from "@/components/home/Showcase";
-import { getCampaigns, getSlides, getTiles } from "@/lib/cms";
+import { getBrandLogos, getCampaigns, getSlides, getTiles } from "@/lib/cms";
 import type { Product } from "@/lib/data";
 import { getProducts } from "@/lib/products";
 import { slugify } from "@/lib/slug";
@@ -20,7 +20,7 @@ function pick(list: Product[], n: number) {
 }
 
 export default async function Home() {
-  const [all, slides, tiles, campaigns] = await Promise.all([getProducts(), getSlides(), getTiles(), getCampaigns()]);
+  const [all, slides, tiles, campaigns, logos] = await Promise.all([getProducts(), getSlides(), getTiles(), getCampaigns(), getBrandLogos()]);
 
   const byCat = new Map<string, Product[]>();
   const brandCounts = new Map<string, number>();
@@ -32,18 +32,20 @@ export default async function Home() {
     .sort((a, b) => b[1].length - a[1].length)
     .map(([name, list]) => ({ name, slug: slugify(name), count: list.length, products: pick(list, 4) }));
   const brands = [...brandCounts].sort((a, b) => b[1] - a[1]).map(([b]) => b);
-  const deals = all.filter((p) => discount(p) >= 0.05 && p.inStock).sort((a, b) => discount(b) - discount(a)).slice(0, 4);
+  const deals = all.filter((p) => discount(p) >= 0.05 && p.inStock).sort((a, b) => discount(b) - discount(a)).slice(0, 5);
 
   return (
     <main>
       <HeroSlider slides={slides} />
-      <ProductTabs groups={groups} />
       <Showcase tiles={tiles} />
+      <ProductTabs groups={groups} />
       <Campaigns blocks={campaigns} />
-      <ProductRow eyebrow="Fırsatlar" title="Kampanyalı Ürünler" href="/urunler" products={deals} />
+      <Deals products={deals} />
       <Services />
+      <Igdas />
       <Stats products={all.length} brands={brands.length} categories={groups.length} />
-      <Brands items={brands.slice(0, 12)} />
+      {/* Adminden logo eklendiyse onlar, eklenmediyse en çok ürünü olan markaların adları */}
+      <Brands items={logos.length ? logos.map((l) => ({ name: l.name, image: l.image })) : brands.slice(0, 12).map((name) => ({ name, image: null }))} />
       <CtaBand />
     </main>
   );

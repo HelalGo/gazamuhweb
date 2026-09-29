@@ -19,7 +19,7 @@ export async function login(_: string | null, formData: FormData): Promise<strin
     console.error("[admin login]", (e as Error).message);
     return "Veritabanına bağlanılamadı.";
   }
-  redirect("/admin/products");
+  redirect("/admin");
 }
 
 export async function logout() {
@@ -27,9 +27,13 @@ export async function logout() {
   redirect("/admin/login");
 }
 
+// Fiyat yazımlarını sayıya çevirir: "35.750,50" → 35750.5 · "35750.00" (veritabanı biçimi) → 35750 · "35.750" → 35750
 const num = (v: FormDataEntryValue | null) => {
-  const s = String(v ?? "").replace(/\./g, "").replace(",", ".").trim();
-  return s === "" ? null : Number(s);
+  let s = String(v ?? "").replace(/[\s₺]/g, "");
+  if (s === "") return null;
+  if (s.includes(",")) s = s.replace(/\./g, "").replace(",", "."); // Türkçe: nokta binlik, virgül kuruş
+  else if (!/^\d+\.\d{1,2}$/.test(s)) s = s.replace(/\./g, ""); // yalnızca binlik noktaları
+  return Number(s);
 };
 
 // "Anahtar: Değer" satırlarını nesneye çevirir
@@ -41,6 +45,19 @@ function parseSpecs(text: string) {
   }
   return out;
 }
+
+// Galeri sütunu eski veritabanlarında yoksa ekler (sunucuda katalog betiği de ekler)
+let galleryReady = false;
+async function ensureGallery() {
+  if (galleryReady) return;
+  const [col] = await db().query<RowDataPacket[]>(
+    "SELECT COUNT(*) n FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'products' AND COLUMN_NAME = 'images'"
+  );
+  if (!col[0].n) await db().query("ALTER TABLE products ADD COLUMN images JSON NULL AFTER image_url");
+  galleryReady = true;
+}
+const parseImages = (v: unknown): string[] => (typeof v === "string" ? JSON.parse(v) : (v as string[] | null)) ?? [];
+const MAX_GALLERY = 12;
 
 export async function saveProduct(formData: FormData) {
   await requireAdmin();
@@ -81,31 +98,78 @@ export async function saveProduct(formData: FormData) {
     v.image_url = null;
   }
 
+  // Ek görseller: işaretlenenleri çıkar, yeni yüklenenleri sona ekle
+  await ensureGallery();
+  const errPath = id ? `/admin/products/${id}` : "/admin/products/new";
+  const [cur] = id ? await db().query<RowDataPacket[]>("SELECT images FROM products WHERE id = ?", [id]) : [[] as RowDataPacket[]];
+  const removed = new Set(formData.getAll("remove_gallery").map(String));
+  const gallery = parseImages(cur[0]?.images).filter((u) => !removed.has(u));
+  for (const u of removed) await removeImage(u);
+  for (const f of formData.getAll("gallery_files")) {
+    if (!(f instanceof File) || f.size === 0) continue;
+    if (gallery.length >= MAX_GALLERY) break;
+    const saved = await saveImage(f);
+    if ("error" in saved) redirect(`${errPath}?imgerror=${encodeURIComponent(`${f.name}: ${saved.error}`)}`);
+    gallery.push(saved.url);
+  }
+  const values = { ...v, images: JSON.stringify(gallery) };
+
   if (id) {
-    await db().query("UPDATE products SET ? WHERE id = ?", [v, id]);
+    await db().query("UPDATE products SET ? WHERE id = ?", [values, id]);
   } else {
     let slug = slugify(name);
     const [taken] = await db().query<RowDataPacket[]>("SELECT id FROM products WHERE slug = ?", [slug]);
     if (taken.length) slug += `-${Date.now().toString(36)}`;
-    const [res] = await db().query<ResultSetHeader>("INSERT INTO products SET ?", [{ ...v, slug }]);
+    const [res] = await db().query<ResultSetHeader>("INSERT INTO products SET ?", [{ ...values, slug }]);
     redirect(`/admin/products/${res.insertId}?saved=1`);
   }
   redirect(`/admin/products/${id}?saved=1`);
 }
 
+// Yalnızca panel içi dönüş adreslerine izin ver
+const backTo = (f: FormData, extra = "") => {
+  const b = String(f.get("back") ?? "");
+  const base = b.startsWith("/admin/products") ? b : "/admin/products";
+  return extra ? `${base}${base.includes("?") ? "&" : "?"}${extra}` : base;
+};
+
+async function removeProducts(ids: number[]) {
+  if (!ids.length) return;
+  const [old] = await db().query<RowDataPacket[]>("SELECT * FROM products WHERE id IN (?)", [ids]);
+  for (const r of old) for (const u of [r.image_url, ...parseImages(r.images)]) await removeImage(u);
+  await db().query("DELETE FROM favorites WHERE product_id IN (?)", [ids]).catch(() => {});
+  await db().query("DELETE FROM reviews WHERE product_id IN (?)", [ids]).catch(() => {});
+  await db().query("UPDATE order_items SET product_id = NULL WHERE product_id IN (?)", [ids]).catch(() => {}); // sipariş geçmişi korunur
+  await db().query("DELETE FROM products WHERE id IN (?)", [ids]);
+}
+
 export async function deleteProduct(formData: FormData) {
   await requireAdmin();
-  const id = Number(formData.get("id"));
-  const [old] = await db().query<RowDataPacket[]>("SELECT image_url FROM products WHERE id = ?", [id]);
-  await removeImage(old[0]?.image_url);
-  await db().query("DELETE FROM products WHERE id = ?", [id]);
-  redirect("/admin/products");
+  await removeProducts([Number(formData.get("id"))]);
+  redirect(backTo(formData, "done=deleted"));
 }
 
 export async function toggleActive(formData: FormData) {
   await requireAdmin();
   await db().query("UPDATE products SET active = 1 - active WHERE id = ?", [Number(formData.get("id"))]);
-  redirect(String(formData.get("back") || "/admin/products"));
+  redirect(backTo(formData));
+}
+
+export async function toggleStock(formData: FormData) {
+  await requireAdmin();
+  await db().query("UPDATE products SET in_stock = 1 - in_stock WHERE id = ?", [Number(formData.get("id"))]);
+  redirect(backTo(formData));
+}
+
+// Ürün listesindeki toplu işlem çubuğu
+export async function bulkProducts(formData: FormData) {
+  await requireAdmin();
+  const ids = formData.getAll("ids").map(Number).filter((n) => n > 0);
+  const op = String(formData.get("op"));
+  const set: Record<string, string> = { publish: "active = 1", hide: "active = 0", instock: "in_stock = 1", outstock: "in_stock = 0" };
+  if (ids.length && op in set) await db().query(`UPDATE products SET ${set[op]} WHERE id IN (?)`, [ids]);
+  if (ids.length && op === "delete") await removeProducts(ids);
+  redirect(backTo(formData, ids.length ? `done=${op === "delete" ? "deleted" : "updated"}&n=${ids.length}` : ""));
 }
 
 export type BulkResult = { matched: number; unmatched: string[]; failed: string[] } | null;
