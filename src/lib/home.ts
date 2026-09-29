@@ -42,13 +42,6 @@ export const slides: Slide[] = [
   },
 ];
 
-export const usp = [
-  { icon: "clipboard", title: "Proje Yönetimi", text: "Mekâna uygun sistem seçimi" },
-  { icon: "wrench", title: "Kurulum ve Montaj", text: "Profesyonel uygulama" },
-  { icon: "shield", title: "Bakım ve Onarım", text: "Isıtma ve soğutma sistemleri" },
-  { icon: "message", title: "WhatsApp Destek", text: "Hızlı bilgi ve teklif" },
-] as const;
-
 export const services = [
   { icon: "clipboard", title: "Proje ve Keşif", text: "Mekânınıza uygun kapasite ve sistem seçimi için proje ve keşif desteği sunuyoruz." },
   { icon: "wrench", title: "Kurulum ve Montaj", text: "Isıtma, havalandırma, soğutma ve iklimlendirme sistemlerinin kurulumunu yapıyoruz." },

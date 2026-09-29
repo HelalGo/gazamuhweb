@@ -53,5 +53,40 @@ await c.query(`CREATE TABLE IF NOT EXISTS users (
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 ) CHARACTER SET utf8mb4`);
 
-console.log("Tablolar hazır: products, admins, users");
+await c.query(`CREATE TABLE IF NOT EXISTS hero_slides (
+  id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  sort_order INT NOT NULL DEFAULT 0,
+  active TINYINT(1) NOT NULL DEFAULT 1,
+  image_url VARCHAR(500) NULL,
+  mobile_image_url VARCHAR(500) NULL,
+  overlay TINYINT(1) NOT NULL DEFAULT 1,
+  eyebrow VARCHAR(80) NULL,
+  title VARCHAR(200) NOT NULL DEFAULT '',
+  text VARCHAR(400) NULL,
+  btn1_label VARCHAR(60) NULL, btn1_url VARCHAR(500) NULL,
+  btn2_label VARCHAR(60) NULL, btn2_url VARCHAR(500) NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+) CHARACTER SET utf8mb4`);
+
+await c.query(`CREATE TABLE IF NOT EXISTS showcase_tiles (
+  id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  sort_order INT NOT NULL DEFAULT 0,
+  active TINYINT(1) NOT NULL DEFAULT 1,
+  image_url VARCHAR(500) NULL,
+  title VARCHAR(80) NOT NULL DEFAULT '',
+  url VARCHAR(500) NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+) CHARACTER SET utf8mb4`);
+
+await c.query(`CREATE TABLE IF NOT EXISTS campaign_blocks (
+  id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  sort_order INT NOT NULL DEFAULT 0,
+  active TINYINT(1) NOT NULL DEFAULT 1,
+  title VARCHAR(120) NULL,
+  layout VARCHAR(20) NOT NULL,
+  items JSON NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+) CHARACTER SET utf8mb4`);
+
+console.log("Tablolar hazır: products, admins, users, hero_slides, showcase_tiles, campaign_blocks");
 await c.end();

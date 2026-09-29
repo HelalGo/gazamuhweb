@@ -1,9 +1,8 @@
 import Link from "next/link";
 import { ArrowRight, Phone } from "lucide-react";
 import type { Product } from "@/lib/data";
-import { services, usp, whatsappUrl } from "@/lib/home";
+import { services, whatsappUrl } from "@/lib/home";
 import { contact } from "@/lib/site";
-import { slugify } from "@/lib/slug";
 import { ProductCard } from "../ProductCard";
 import { CountUp } from "./CountUp";
 import { Icon } from "./Icons";
@@ -24,47 +23,6 @@ export function Heading({ eyebrow, title, href, linkLabel = "Tümünü gör" }: 
         </Link>
       )}
     </div>
-  );
-}
-
-export function UspStrip() {
-  return (
-    <section className="bg-surface">
-      <div className={`${wrap} grid grid-cols-2 gap-x-6 gap-y-5 py-7 lg:grid-cols-4`}>
-        {usp.map((u) => (
-          <div key={u.title} className="flex items-center gap-4">
-            <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-white text-primary"><Icon name={u.icon} size={20} /></span>
-            <div>
-              <p className="text-sm font-bold">{u.title}</p>
-              <p className="text-xs text-muted">{u.text}</p>
-            </div>
-          </div>
-        ))}
-      </div>
-    </section>
-  );
-}
-
-export function Categories({ items }: { items: { name: string; count: number }[] }) {
-  return (
-    <section className={`${wrap} py-20`}>
-      <Heading eyebrow="Kategoriler" title="Ürün Gruplarımız" href="/urunler" />
-      <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
-        {items.map((c, n) => (
-          <Reveal key={c.name} delay={(n % 4) * 0.07}>
-            <Link href={`/${slugify(c.name)}`} className="group flex h-full flex-col rounded-3xl bg-surface p-6 transition-colors hover:bg-primary hover:text-white">
-              <span className="mb-8 grid h-12 w-12 place-items-center rounded-2xl bg-white text-primary transition-colors group-hover:bg-white/15 group-hover:text-white">
-                <Icon name={c.name} size={24} />
-              </span>
-              <p className="text-lg font-bold">{c.name}</p>
-              <p className="mt-1 flex items-center justify-between text-sm text-muted transition-colors group-hover:text-white/80">
-                {c.count} ürün <ArrowRight size={16} className="transition-transform group-hover:translate-x-1" />
-              </p>
-            </Link>
-          </Reveal>
-        ))}
-      </div>
-    </section>
   );
 }
 

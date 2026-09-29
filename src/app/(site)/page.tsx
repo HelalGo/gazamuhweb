@@ -1,44 +1,48 @@
+import { Campaigns } from "@/components/home/Campaigns";
 import { HeroSlider } from "@/components/home/HeroSlider";
-import { Brands, Categories, CtaBand, ProductRow, Services, Stats, UspStrip } from "@/components/home/Sections";
-import { slides } from "@/lib/home";
-import { getProducts } from "@/lib/products";
+import { ProductTabs, type Group } from "@/components/home/ProductTabs";
+import { Brands, CtaBand, ProductRow, Services, Stats } from "@/components/home/Sections";
+import { Showcase } from "@/components/home/Showcase";
+import { getCampaigns, getSlides, getTiles } from "@/lib/cms";
 import type { Product } from "@/lib/data";
+import { getProducts } from "@/lib/products";
+import { slugify } from "@/lib/slug";
 
 export const dynamic = "force-dynamic";
 
 const discount = (p: Product) => (p.oldPrice && p.oldPrice > p.price ? 1 - p.price / p.oldPrice : 0);
 
-// Fiyatı olan, stoktaki ürünlerden indirimi en yüksek olanları önce getirir
-const featured = (all: Product[], category: string, n = 4) =>
-  all
-    .filter((p) => p.category === category && p.price > 0 && p.inStock)
-    .sort((a, b) => discount(b) - discount(a))
-    .slice(0, n);
+// Önce fiyatı olan, stoktaki ve indirimi yüksek ürünler; gerekirse kalanlarla tamamlanır
+function pick(list: Product[], n: number) {
+  const good = list.filter((p) => p.price > 0 && p.inStock).sort((a, b) => discount(b) - discount(a));
+  const rest = list.filter((p) => !good.includes(p));
+  return [...good, ...rest].slice(0, n);
+}
 
 export default async function Home() {
-  const all = await getProducts();
+  const [all, slides, tiles, campaigns] = await Promise.all([getProducts(), getSlides(), getTiles(), getCampaigns()]);
 
-  const counts = new Map<string, number>();
+  const byCat = new Map<string, Product[]>();
   const brandCounts = new Map<string, number>();
   for (const p of all) {
-    counts.set(p.category, (counts.get(p.category) ?? 0) + 1);
+    byCat.set(p.category, [...(byCat.get(p.category) ?? []), p]);
     if (p.brand) brandCounts.set(p.brand, (brandCounts.get(p.brand) ?? 0) + 1);
   }
-  const categories = [...counts].map(([name, count]) => ({ name, count })).sort((a, b) => b.count - a.count);
+  const groups: Group[] = [...byCat]
+    .sort((a, b) => b[1].length - a[1].length)
+    .map(([name, list]) => ({ name, slug: slugify(name), count: list.length, products: pick(list, 4) }));
   const brands = [...brandCounts].sort((a, b) => b[1] - a[1]).map(([b]) => b);
   const deals = all.filter((p) => discount(p) >= 0.05 && p.inStock).sort((a, b) => discount(b) - discount(a)).slice(0, 4);
 
   return (
     <main>
       <HeroSlider slides={slides} />
-      <UspStrip />
-      <Categories items={categories} />
-      <ProductRow eyebrow="Kombi" title="Sizin İçin Seçtiğimiz Kombiler" href="/kombi" products={featured(all, "Kombi")} />
-      <ProductRow eyebrow="Klima" title="Sizin İçin Seçtiğimiz Klimalar" href="/klima" products={featured(all, "Klima")} />
-      <ProductRow eyebrow="Ankastre" title="Ankastre Ürünler" href="/ankastre" products={featured(all, "Ankastre")} />
+      <ProductTabs groups={groups} />
+      <Showcase tiles={tiles} />
+      <Campaigns blocks={campaigns} />
       <ProductRow eyebrow="Fırsatlar" title="Kampanyalı Ürünler" href="/urunler" products={deals} />
       <Services />
-      <Stats products={all.length} brands={brands.length} categories={categories.length} />
+      <Stats products={all.length} brands={brands.length} categories={groups.length} />
       <Brands items={brands.slice(0, 12)} />
       <CtaBand />
     </main>

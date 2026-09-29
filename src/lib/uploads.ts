@@ -18,14 +18,58 @@ function detectExt(b: Buffer): "jpg" | "png" | "webp" | null {
   return null;
 }
 
+// Görselin istenen boyutlara uyup uymadığını denetler.
+// w×h "önerilen" boyuttur; ratio=true ise oran da (±%3) zorunludur. En az önerilen genişliğin %75'i gerekir.
+export type Req = { w: number; h: number; ratio?: boolean; portrait?: boolean };
+
+function imageSize(b: Buffer, ext: string): { w: number; h: number } | null {
+  try {
+    if (ext === "png") return { w: b.readUInt32BE(16), h: b.readUInt32BE(20) };
+    if (ext === "webp") {
+      const kind = b.subarray(12, 16).toString();
+      if (kind === "VP8 ") return { w: b.readUInt16LE(26) & 0x3fff, h: b.readUInt16LE(28) & 0x3fff };
+      if (kind === "VP8L") {
+        const v = b.readUInt32LE(21);
+        return { w: (v & 0x3fff) + 1, h: ((v >> 14) & 0x3fff) + 1 };
+      }
+      if (kind === "VP8X") return { w: 1 + b.readUIntLE(24, 3), h: 1 + b.readUIntLE(27, 3) };
+      return null;
+    }
+    // jpg: SOF işaretçisini ara
+    let i = 2;
+    while (i < b.length) {
+      if (b[i] !== 0xff) { i++; continue; }
+      const m = b[i + 1];
+      if (m >= 0xc0 && m <= 0xcf && ![0xc4, 0xc8, 0xcc].includes(m)) return { h: b.readUInt16BE(i + 5), w: b.readUInt16BE(i + 7) };
+      i += 2 + b.readUInt16BE(i + 2);
+    }
+  } catch {}
+  return null;
+}
+
+function checkReq(size: { w: number; h: number } | null, req: Req): string | null {
+  if (!size) return "Görselin boyutu okunamadı.";
+  const need = `${req.w}×${req.h} px`;
+  const got = `yüklediğiniz: ${size.w}×${size.h} px`;
+  if (size.w < req.w * 0.75) return `Görsel çok küçük. Gerekli boyut ${need} (${got}).`;
+  if (req.portrait && size.h <= size.w) return `Görsel dikey olmalı. Gerekli boyut ${need} (${got}).`;
+  if (req.ratio !== false && Math.abs(size.w / size.h / (req.w / req.h) - 1) > 0.03)
+    return `Görselin oranı uyumsuz. Gerekli boyut ${need} (${got}).`;
+  return null;
+}
+
 export type SaveResult = { url: string } | { error: string };
 
-export async function saveImage(file: File): Promise<SaveResult> {
+export async function saveImage(file: File, req?: Req): Promise<SaveResult> {
   if (file.size === 0) return { error: "Dosya boş." };
   if (file.size > MAX_BYTES) return { error: "Dosya 5 MB'tan büyük." };
   const buf = Buffer.from(await file.arrayBuffer());
   const ext = detectExt(buf);
   if (!ext) return { error: "Yalnızca JPG, PNG veya WebP yüklenebilir." };
+  if (req) {
+    const problem = checkReq(imageSize(buf, ext), req);
+    if (problem) return { error: problem };
+  }
   const name = `${randomBytes(12).toString("hex")}.${ext}`;
   await mkdir(/* turbopackIgnore: true */ UPLOAD_DIR, { recursive: true });
   await writeFile(path.join(/* turbopackIgnore: true */ UPLOAD_DIR, name), buf);
