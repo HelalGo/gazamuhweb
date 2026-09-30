@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
-  Award, ExternalLink, MailCheck, Users, GalleryHorizontal, ImagePlus, Inbox, LayoutDashboard, LayoutGrid, LogOut, Megaphone, Menu, MessageSquare, Package, ShoppingBag, X,
+  Award, Bell, ExternalLink, MailCheck, Users, GalleryHorizontal, ImagePlus, Inbox, LayoutDashboard, LayoutGrid, LogOut, Megaphone, Menu, MessageSquare, Newspaper, Package, ShoppingBag, Smartphone, SunSnow, TicketPercent, Truck, X,
 } from "lucide-react";
 import { logout } from "../actions";
 
@@ -16,6 +16,8 @@ const groups = [
       { href: "/admin/products", label: "Ürünler", icon: Package },
       { href: "/admin/orders", label: "Siparişler", icon: ShoppingBag, badge: "orders" },
       { href: "/admin/talepler", label: "Bilgi Talepleri", icon: Inbox, badge: "leads" },
+      { href: "/admin/kuponlar", label: "İndirim Kuponları", icon: TicketPercent },
+      { href: "/admin/kargo", label: "Kargo Ücretleri", icon: Truck },
       { href: "/admin/reviews", label: "Yorumlar", icon: MessageSquare },
       { href: "/admin/images", label: "Toplu Görsel", icon: ImagePlus },
     ],
@@ -23,10 +25,23 @@ const groups = [
   {
     title: "Ana Sayfa",
     items: [
+      { href: "/admin/sezon", label: "Mevsim Sıralaması", icon: SunSnow },
       { href: "/admin/slider", label: "Slider", icon: GalleryHorizontal },
       { href: "/admin/vitrin", label: "Vitrin Kartları", icon: LayoutGrid },
       { href: "/admin/kampanyalar", label: "Kampanyalar", icon: Megaphone },
       { href: "/admin/markalar", label: "Markalar", icon: Award },
+    ],
+  },
+  {
+    title: "İçerik",
+    items: [{ href: "/admin/blog", label: "Blog Yazıları", icon: Newspaper }],
+  },
+  {
+    title: "Mobil Uygulama",
+    items: [
+      { href: "/admin/bildirimler", label: "Bildirim Gönder", icon: Bell },
+      { href: "/admin/uygulama-banner", label: "Ana Sayfa Bannerları", icon: GalleryHorizontal },
+      { href: "/admin/uygulama-tanitim", label: "Tanıtım Ekranları", icon: Smartphone },
     ],
   },
   {

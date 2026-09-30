@@ -8,6 +8,10 @@
 //  6) Ürün açıklamalarını kurumsal metinlerle değiştirir, fiyatı olmayan / 10 TL görünen ürünlere
 //     piyasa fiyatı yazar ve yanlış kategorideki ürünü düzeltir (katalog-aciklama.json).
 //  7) Kaynak siteden gelen ürün kodlarını GAZA kodlarıyla değiştirir (GZ-KMB-0001 biçimi).
+//  8) Ürün görsellerini arka planı temizlenmiş, açık mavi zeminli sürümleriyle değiştirir
+//     (katalog-arkaplan/ + katalog-arkaplan.json). Yeni dosyalar yeni adla gelir; tarayıcı önbelleği eskisini göstermez.
+//  9) 8. adımda kesilince bozulan yakın çekimleri (ürünün fotoğraf kenarına taştığı görseller) orijinaline döndürür
+//     (katalog-arkaplan-geri.json: yeni ad → orijinal ad).
 // Her adım başarıyla bitince UPLOAD_DIR'e kendi işaret dosyasını bırakır ve bir daha çalışmaz;
 // böylece sonradan admin panelinden yapılan değişikliklere dokunulmaz.
 import { createHash, randomBytes } from "node:crypto";
@@ -23,6 +27,8 @@ const MARK_GALLERY = ".galeri-1";
 const MARK_CLEAN = ".bina-temizle-1";
 const MARK_TEXT = ".aciklama-fiyat-1";
 const MARK_SKU = ".urun-kodu-1";
+const MARK_BG = ".arkaplan-1";
+const MARK_BG_BACK = ".arkaplan-geri-1";
 const exists = (p) => access(p).then(() => true, () => false);
 const bundledName = (url) => createHash("sha1").update(url).digest("hex").slice(0, 24) + ".webp";
 
@@ -47,7 +53,9 @@ export async function run() {
   const doClean = !(await exists(path.join(uploadDir, MARK_CLEAN)));
   const doText = !(await exists(path.join(uploadDir, MARK_TEXT)));
   const doSku = !(await exists(path.join(uploadDir, MARK_SKU)));
-  if (!doCatalog && !doStock && !doGallery && !doClean && !doText && !doSku) return;
+  const doBg = !(await exists(path.join(uploadDir, MARK_BG))) && (await exists(path.join(HERE, "katalog-arkaplan.json")));
+  const doBgBack = !(await exists(path.join(uploadDir, MARK_BG_BACK))) && (await exists(path.join(HERE, "katalog-arkaplan-geri.json")));
+  if (!doCatalog && !doStock && !doGallery && !doClean && !doText && !doSku && !doBg && !doBgBack) return;
 
   const c = await mysql.createConnection({
     host: process.env.DB_HOST,
@@ -70,6 +78,8 @@ export async function run() {
     if (doClean) await clean(c, uploadDir);
     if (doText) await texts(c, uploadDir);
     if (doSku) await skus(c, uploadDir);
+    if (doBg) await backgrounds(c, uploadDir);
+    if (doBgBack) await backgroundsBack(c, uploadDir);
   } finally {
     await c.end();
   }
@@ -202,6 +212,73 @@ async function skus(c, uploadDir) {
   }
   console.log(`[katalog] ${n} ürüne GAZA ürün kodu verildi`);
   await writeFile(path.join(uploadDir, MARK_SKU), new Date().toISOString());
+}
+
+// 8) Arka plan: eski görsel adı → yeni görsel adı. Yalnızca hâlâ eski katalog görselini kullanan ürünler değişir;
+// admin panelinden sonradan yüklenen görsellere dokunulmaz. Eski dosyalar silinmez.
+async function backgrounds(c, uploadDir) {
+  const map = JSON.parse(await readFile(path.join(HERE, "katalog-arkaplan.json"), "utf8"));
+  const swap = (u) => {
+    const m = /^\/uploads\/([a-f0-9]{24}\.webp)$/.exec(u ?? "");
+    return m && map[m[1]] ? `/uploads/${map[m[1]]}` : u;
+  };
+  const [rows] = await c.query("SELECT id, image_url, images FROM products");
+  const updates = [];
+  for (const r of rows) {
+    let imgs = [];
+    try { imgs = typeof r.images === "string" ? JSON.parse(r.images) : (r.images ?? []); } catch {}
+    if (!Array.isArray(imgs)) imgs = [];
+    const cover = swap(r.image_url);
+    const gallery = imgs.map(swap);
+    if (cover !== r.image_url || gallery.some((u, i) => u !== imgs[i])) updates.push([cover, gallery, r.id]);
+  }
+  // önce yeni dosyalar kopyalanır, sonra ürünler bağlanır (yarıda kalırsa kırık görsel olmasın)
+  const fresh = new Set(Object.values(map));
+  let copied = 0;
+  for (const [cover, gallery] of updates) {
+    for (const u of [cover, ...gallery]) {
+      const name = u?.startsWith("/uploads/") ? u.slice(9) : null;
+      if (!name || !fresh.has(name) || (await exists(path.join(uploadDir, name)))) continue;
+      await copyFile(path.join(HERE, "katalog-arkaplan", name), path.join(uploadDir, name));
+      copied++;
+    }
+  }
+  for (const [cover, gallery, id] of updates) await c.query("UPDATE products SET image_url = ?, images = ? WHERE id = ?", [cover, JSON.stringify(gallery), id]);
+  const n = updates.length;
+  console.log(`[katalog] ${n} ürünün görseli arka planı temizlenmiş sürümle değiştirildi (${copied} dosya)`);
+  await writeFile(path.join(uploadDir, MARK_BG), new Date().toISOString());
+}
+
+// 9) Geri alma: yeni ad → orijinal ad. Orijinal dosya yüklenenler klasöründe yoksa paketteki katalog-gorselleri'nden kopyalanır.
+async function backgroundsBack(c, uploadDir) {
+  const back = JSON.parse(await readFile(path.join(HERE, "katalog-arkaplan-geri.json"), "utf8"));
+  const swap = (u) => {
+    const m = /^\/uploads\/([a-f0-9]{24}\.webp)$/.exec(u ?? "");
+    return m && back[m[1]] ? `/uploads/${back[m[1]]}` : u;
+  };
+  const [rows] = await c.query("SELECT id, image_url, images FROM products");
+  const updates = [];
+  for (const r of rows) {
+    let imgs = [];
+    try { imgs = typeof r.images === "string" ? JSON.parse(r.images) : (r.images ?? []); } catch {}
+    if (!Array.isArray(imgs)) imgs = [];
+    const cover = swap(r.image_url);
+    const gallery = imgs.map(swap);
+    if (cover !== r.image_url || gallery.some((u, i) => u !== imgs[i])) updates.push([cover, gallery, r.id]);
+  }
+  const originals = new Set(Object.values(back));
+  let copied = 0;
+  for (const [cover, gallery] of updates) {
+    for (const u of [cover, ...gallery]) {
+      const name = u?.startsWith("/uploads/") ? u.slice(9) : null;
+      if (!name || !originals.has(name) || (await exists(path.join(uploadDir, name)))) continue;
+      const src = path.join(HERE, "katalog-gorselleri", name);
+      if (await exists(src)) { await copyFile(src, path.join(uploadDir, name)); copied++; }
+    }
+  }
+  for (const [cover, gallery, id] of updates) await c.query("UPDATE products SET image_url = ?, images = ? WHERE id = ?", [cover, JSON.stringify(gallery), id]);
+  console.log(`[katalog] ${updates.length} ürünün yakın çekim görselleri orijinaline döndürüldü (${copied} dosya)`);
+  await writeFile(path.join(uploadDir, MARK_BG_BACK), new Date().toISOString());
 }
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {

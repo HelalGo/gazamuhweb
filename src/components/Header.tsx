@@ -4,7 +4,7 @@ import { usePathname } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import { AnimatePresence, motion } from "motion/react";
-import { ArrowRight, Heart, Info, Menu, Search, ShoppingCart, User, X } from "lucide-react";
+import { ArrowRight, Heart, Info, Menu, PhoneCall, Search, ShoppingCart, User, X } from "lucide-react";
 import type { MenuItem } from "@/lib/menu";
 import { cartCount, useCart } from "@/store/cart";
 import { IgdasBadge } from "./IgdasBadge";
@@ -104,6 +104,11 @@ export function Header({ menu, popular }: { menu: MenuItem[]; popular: string[] 
               </li>
             ))}
             <li className="ml-auto" onMouseEnter={() => setOpen(null)}>
+              <Link href="/iletisim" onClick={close} className={`${navCls(pathname === "/iletisim")} inline-flex items-center gap-1.5 text-primary`}>
+                <PhoneCall size={16} />İletişim
+              </Link>
+            </li>
+            <li onMouseEnter={() => setOpen(null)}>
               <Link href="/bilgi-al" onClick={close} className={`${navCls(pathname === "/bilgi-al")} inline-flex items-center gap-1.5 text-accent`}>
                 <Info size={16} />Bilgi Al
               </Link>
@@ -130,8 +135,13 @@ export function Header({ menu, popular }: { menu: MenuItem[]; popular: string[] 
                 </li>
               ))}
               <li onMouseEnter={() => setOpen(null)}>
-                <Link href="/bilgi-al" onClick={close} className="ml-1 inline-flex items-center gap-1.5 rounded-[4px] bg-accent/10 px-3 py-2 text-[13px] font-bold text-accent hover:bg-accent hover:text-white">
-                  <Info size={15} />Bilgi Al
+                <Link href="/iletisim" onClick={close} className="ml-1 inline-flex items-center rounded-[4px] bg-primary/10 px-3 py-2 text-[13px] font-bold text-primary hover:bg-primary hover:text-white">
+                  İletişim
+                </Link>
+              </li>
+              <li onMouseEnter={() => setOpen(null)}>
+                <Link href="/bilgi-al" onClick={close} className="ml-1 inline-flex items-center rounded-[4px] bg-accent/10 px-3 py-2 text-[13px] font-bold text-accent hover:bg-accent hover:text-white">
+                  Bilgi Al
                 </Link>
               </li>
             </ul>
@@ -213,6 +223,7 @@ export function Header({ menu, popular }: { menu: MenuItem[]; popular: string[] 
                     </Link>
                   </li>
                 ))}
+                <li><Link href="/iletisim" onClick={close} className="flex items-center gap-2 px-6 py-3 font-semibold text-primary"><PhoneCall size={18} />İletişim</Link></li>
                 <li><Link href="/bilgi-al" onClick={close} className="flex items-center gap-2 px-6 py-3 font-semibold text-accent"><Info size={18} />Bilgi Al</Link></li>
               </ul>
               <SocialIcons className="border-t border-border px-5 py-4" itemClass="h-10 w-10 bg-surface text-primary" />

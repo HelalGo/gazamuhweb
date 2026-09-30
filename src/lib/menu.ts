@@ -1,6 +1,6 @@
 import { getTiles } from "./cms";
 import { getProducts } from "./products";
-import { nav } from "./site";
+import { seasonalNav } from "./season";
 import { slugify } from "./slug";
 
 export type MenuItem = {
@@ -15,7 +15,8 @@ export type MenuItem = {
 // Header'daki kategori menüleri: markalar + öne çıkan ürünler + görsel.
 // Görsel önceliği: admin panelindeki vitrin kartı (adresi kategoriye gidiyorsa) > kategorideki bir ürün görseli.
 export async function getMenu(): Promise<MenuItem[]> {
-  const [products, tiles] = await Promise.all([getProducts(), getTiles().catch(() => [])]);
+  // kategoriler mevsime göre sıralanır (kışın Kombi, yazın Klima önde)
+  const [products, tiles, nav] = await Promise.all([getProducts(), getTiles().catch(() => []), seasonalNav()]);
   const cats = nav.filter((n) => n.href !== "/urunler");
   return cats.map((n) => {
     const list = products.filter((p) => `/${slugify(p.category)}` === n.href);

@@ -185,9 +185,6 @@ export function Brands({ items }: { items: BrandItem[] }) {
           <p className="mb-3 text-[11px] font-semibold uppercase tracking-[0.25em] text-accent">Markalar</p>
           <h2 className="text-3xl font-light tracking-tight md:text-5xl">Çalıştığımız Markalar</h2>
         </div>
-        <p className="max-w-sm text-sm leading-relaxed text-muted">
-          Sektörün önde gelen üreticilerinin ürünleri. Bir markaya tıklayarak o markanın tüm ürünlerini görebilirsiniz.
-        </p>
       </div>
       <div className="space-y-4">
         {rows.map((r, i) => <Marquee key={i} items={r} reverse={i === 1} />)}

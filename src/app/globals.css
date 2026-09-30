@@ -53,3 +53,37 @@ body {
 .legal th, .legal td { border: 1px solid var(--border); padding: 0.65rem 0.9rem; text-align: left; vertical-align: top; }
 .legal th { width: 34%; background: var(--surface); font-weight: 600; }
 .legal thead th { width: auto; }
+
+/* Blog yazısı gövdesi (components/BlogContent) */
+.blog { font-size: 1.0625rem; line-height: 1.85; color: color-mix(in srgb, var(--foreground) 82%, transparent); }
+.blog > * + * { margin-top: 1.25rem; }
+.blog > h2 { margin-top: 2.75rem; font-size: 1.625rem; line-height: 1.3; font-weight: 800; letter-spacing: -0.01em; color: var(--foreground); }
+.blog > h3 { margin-top: 2rem; font-size: 1.25rem; line-height: 1.35; font-weight: 700; color: var(--primary); }
+.blog > h2 + *, .blog > h3 + * { margin-top: 0.75rem; }
+.blog strong { font-weight: 700; color: var(--foreground); }
+.blog a { color: var(--accent); font-weight: 600; text-decoration: underline; text-underline-offset: 3px; text-decoration-color: color-mix(in srgb, var(--accent) 40%, transparent); }
+.blog a:hover { text-decoration-color: var(--accent); }
+.blog > ul, .blog > ol { padding-left: 1.4rem; }
+.blog > ul { list-style: none; }
+.blog > ul > li { position: relative; }
+.blog > ul > li::before { content: ""; position: absolute; left: -1.1rem; top: 0.78em; width: 7px; height: 7px; border-radius: 2px; background: var(--accent); }
+.blog > ol { list-style: decimal; }
+.blog > ol > li::marker { color: var(--accent); font-weight: 800; }
+.blog li + li { margin-top: 0.5rem; }
+.blog figure { margin-top: 2rem; margin-bottom: 2rem; }
+.blog figure img { width: 100%; height: auto; border-radius: 4px; background: var(--surface); }
+.blog figcaption { margin-top: 0.65rem; font-size: 0.875rem; color: var(--muted); text-align: center; }
+.blog-table { overflow-x: auto; border: 1px solid var(--border); border-radius: 4px; }
+.blog-table table { width: 100%; border-collapse: collapse; font-size: 0.9375rem; line-height: 1.6; }
+.blog-table th, .blog-table td { padding: 0.75rem 1rem; text-align: left; vertical-align: top; border-bottom: 1px solid var(--border); }
+.blog-table thead th { background: var(--primary); color: #fff; font-weight: 700; white-space: nowrap; }
+.blog-table thead th strong { color: #fff; }
+.blog-table tbody tr:nth-child(even) { background: var(--surface); }
+.blog-table tbody tr:last-child td { border-bottom: 0; }
+.blog blockquote { margin: 2rem 0; padding: 1.5rem 1.75rem; border-left: 4px solid var(--accent); border-radius: 4px; background: var(--surface); }
+.blog blockquote p { font-size: 1.1875rem; line-height: 1.7; font-weight: 500; color: var(--foreground); }
+.blog blockquote cite { display: block; margin-top: 0.75rem; font-size: 0.875rem; font-style: normal; font-weight: 600; color: var(--muted); }
+.blog-note { display: flex; gap: 0.85rem; padding: 1.1rem 1.25rem; border: 1px solid; border-radius: 4px; }
+.blog-note-title { font-weight: 800; font-size: 0.9375rem; }
+.blog-note-text { margin-top: 0.25rem; font-size: 0.9688rem; line-height: 1.75; color: color-mix(in srgb, var(--foreground) 82%, transparent); }
+.blog > hr { margin: 2.5rem auto; width: 96px; border: 0; border-top: 3px solid var(--border); border-radius: 2px; }

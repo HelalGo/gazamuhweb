@@ -2,7 +2,7 @@ import { Fragment } from "react";
 import Link from "next/link";
 import { CookieSettingsButton } from "@/components/CookieConsent";
 import { categories } from "./consent";
-import { company, contact, igdas } from "./site";
+import { bank, company, contact, ibanGroups, igdas } from "./site";
 
 export { policy } from "./policy";
 import { policy } from "./policy";
@@ -103,7 +103,7 @@ export const legal: Record<LegalSlug, { title: string; description: string; body
     body: (
       <>
         <p className="lead">
-          Bu politika, {policy.site} alan adlı internet sitesini (&quot;Site&quot;) kullanan ziyaretçilerimizin ve müşterilerimizin
+          Bu politika, {policy.site} alan adlı internet sitesini ve GAZ-A Mühendislik mobil uygulamasını (birlikte &quot;Site&quot;) kullanan ziyaretçilerimizin ve müşterilerimizin
           bilgilerinin {company.title} (&quot;GAZA Mühendislik&quot;) tarafından nasıl toplandığını, kullanıldığını ve korunduğunu açıklar.
           Kişisel verilerin işlenmesine ilişkin ayrıntılı bilgi <L to="kvkk-aydinlatma-metni">KVKK Aydınlatma Metni</L>&apos;nde yer alır.
         </p>
@@ -112,7 +112,8 @@ export const legal: Record<LegalSlug, { title: string; description: string; body
           <li><strong>Üyelik ve sipariş bilgileri:</strong> Ad soyad, e-posta, telefon, teslimat ve fatura adresi, sipariş içeriği.</li>
           <li><strong>Bilgi talebi formu:</strong> Ad soyad, telefon, e-posta (isteğe bağlı), mesajınız ve ilgilendiğiniz ürün.</li>
           <li><strong>Teknik bilgiler:</strong> IP adresi, tarayıcı türü, ziyaret zamanı gibi güvenlik ve işlem kayıtları.</li>
-          <li><strong>Ödeme bilgileri:</strong> Kart bilgileriniz Site&apos;de işlenmez ve saklanmaz; ödemeler {policy.paymentProvider} güvenli ödeme altyapısı üzerinden alınır.</li>
+          <li><strong>Mobil uygulama:</strong> Bildirim izni verdiğinizde telefonunuza özel bildirim adresi (push token), cihaz türü (iOS / Android) ve bildirim tercihleriniz. Uygulama konum, rehber, fotoğraf veya reklam kimliği gibi bilgilere erişmez.</li>
+          <li><strong>Ödeme bilgileri:</strong> Kart bilgileriniz Site&apos;de işlenmez ve saklanmaz; ödemeler {policy.paymentProvider}nun güvenli ödeme altyapısı üzerinden alınır.</li>
         </ul>
         <h2>2. Bilgileri kullanma amaçlarımız</h2>
         <ul>
@@ -126,7 +127,7 @@ export const legal: Record<LegalSlug, { title: string; description: string; body
         <p>Bilgileriniz satılmaz ve kiralanmaz. Yalnızca hizmetin gerektirdiği ölçüde şu taraflarla paylaşılır:</p>
         <ul>
           <li>Siparişin teslimi için kargo ve lojistik firmaları,</li>
-          <li>Ödeme işlemleri için {policy.paymentProvider} ve bankalar,</li>
+          <li>Ödeme işlemleri için anlaşmalı ödeme kuruluşu ve bankalar,</li>
           <li>Site barındırma, e-posta ve mesajlaşma hizmeti aldığımız tedarikçiler,</li>
           <li>Doğalgaz projelerinde İGDAŞ; garanti ve servis işlemlerinde ilgili üretici veya yetkili servis,</li>
           <li>Kanunen yetkili kamu kurum ve kuruluşları.</li>
@@ -138,13 +139,24 @@ export const legal: Record<LegalSlug, { title: string; description: string; body
         </p>
         <h2>5. Çerezler</h2>
         <p>Site&apos;de kullanılan çerezler hakkında bilgi için <L to="cerez-politikasi">Çerez Politikası</L>&apos;nı inceleyebilirsiniz.</p>
-        <h2>6. Haklarınız</h2>
+        <h2>6. Mobil uygulama bildirimleri</h2>
+        <p>
+          Uygulama, yalnızca izin verdiğinizde bildirim gönderir. Sipariş durumu ve kampanya bildirimlerini uygulamada Hesabım → Ayarlar →
+          İletişim tercihleri bölümünden ya da sitede <L to="/hesabim/iletisim-tercihleri">İletişim Tercihleri</L> sayfasından ayrı ayrı açıp kapatabilirsiniz.
+          Bildirimler Expo (Expo Push Service), Apple (APNs) ve Google (Firebase Cloud Messaging) altyapısı üzerinden iletilir.
+        </p>
+        <h2>7. Hesap silme</h2>
+        <p>
+          Hesabınızı dilediğiniz zaman uygulamada Hesabım → Ayarlar → Hesabımı sil adımıyla ya da sitede <L to="/hesap-silme">Hesap Silme</L> sayfasından
+          silebilirsiniz. Hesabınızla birlikte üyelik bilgileriniz, favorileriniz ve yorumlarınız silinir; sipariş ve fatura kayıtları yasal saklama süresi boyunca saklanır.
+        </p>
+        <h2>8. Haklarınız</h2>
         <p>
           Kişisel verilerinize ilişkin haklarınızı (bilgi alma, düzeltme, silme vb.) kullanmak için{" "}
           <a href={`mailto:${contact.email}`}>{contact.email}</a> adresine yazabilirsiniz. Ayrıntılar{" "}
           <L to="kvkk-aydinlatma-metni">KVKK Aydınlatma Metni</L>&apos;nde yer alır.
         </p>
-        <h2>7. Değişiklikler</h2>
+        <h2>9. Değişiklikler</h2>
         <p>Bu politika gerektiğinde güncellenebilir. Güncel metin her zaman bu sayfada yayımlanır.</p>
       </>
     ),
@@ -189,7 +201,7 @@ export const legal: Record<LegalSlug, { title: string; description: string; body
         </ul>
         <h2>5. Kişisel verilerin aktarılması</h2>
         <p>
-          Kişisel verileriniz, yukarıdaki amaçlarla sınırlı olarak; kargo ve lojistik firmalarına, ödeme kuruluşu {policy.paymentProvider}
+          Kişisel verileriniz, yukarıdaki amaçlarla sınırlı olarak; kargo ve lojistik firmalarına, ödeme kuruluşu
           ve bankalara, barındırma/e-posta/mesajlaşma hizmeti sağlayıcılarına, garanti ve servis kapsamında üretici ve yetkili servislere,
           doğalgaz projelerinde İGDAŞ&apos;a, mali müşavirlik hizmeti alınan kişilere ve kanunen yetkili kamu kurumlarına KVKK&apos;nın 8. ve 9.
           maddelerine uygun olarak aktarılabilir. E-posta ve mesajlaşma gibi bazı hizmet sağlayıcılarının sunucuları yurt dışında
@@ -249,8 +261,9 @@ export const legal: Record<LegalSlug, { title: string; description: string; body
         <p>
           Ürünün türü, markası, modeli, adedi, vergiler dahil satış fiyatı, varsa teslimat ücreti ve ödeme şekli sipariş özetinde ve
           ALICI&apos;nın hesabındaki sipariş detayında yer alır. Sitede ilan edilen fiyatlar ve kampanyalar güncelleme yapılana kadar
-          geçerlidir; süreli kampanyalar belirtilen süre sonuna kadar geçerlidir. Kredi/banka kartı ile yapılan ödemeler{" "}
-          {policy.paymentProvider} altyapısı üzerinden alınır; kart bilgileri SATICI tarafından görülmez ve saklanmaz.
+          geçerlidir; süreli kampanyalar belirtilen süre sonuna kadar geçerlidir. Ödemeler havale / EFT ile SATICI&apos;nın {bank.name}{" "}
+          hesabına ({ibanGroups(bank.iban)}) yapılır; sipariş WhatsApp üzerinden de verilebilir. Kredi/banka kartı ile ödeme seçeneği
+          sunulduğunda ödemeler {policy.paymentProvider}nun altyapısı üzerinden alınır; kart bilgileri SATICI tarafından görülmez ve saklanmaz.
         </p>
         <h2>Madde 4 – Teslimat</h2>
         <p>
@@ -333,7 +346,8 @@ export const legal: Record<LegalSlug, { title: string; description: string; body
         <h2>2. Fiyat ve ödeme</h2>
         <ul>
           <li>Ürün fiyatlarına KDV dahildir. Toplam bedel ve varsa teslimat ücreti sipariş özetinde gösterilir.</li>
-          <li>Ödemeler kredi kartı / banka kartı ile {policy.paymentProvider} güvenli ödeme altyapısı üzerinden alınır. Taksit seçenekleri ödeme adımında kart türüne göre gösterilir.</li>
+          <li>Ödemeler havale / EFT ile SATICI&apos;nın {bank.name} hesabına ({ibanGroups(bank.iban)}, alıcı: {bank.holder}) yapılır; açıklamaya sipariş numarası yazılır. Sipariş, sitede veya WhatsApp üzerinden verilebilir. Ödeme SATICI&apos;nın hesabına ulaştığında sipariş onaylanır ve hazırlanır.</li>
+          <li>Kredi kartı / banka kartı ile ödeme seçeneği sunulduğunda ödemeler {policy.paymentProvider}nun güvenli ödeme altyapısı üzerinden alınır; taksit seçenekleri ödeme adımında kart türüne göre gösterilir.</li>
           <li>Fiyatı &quot;Fiyat için arayın&quot; olarak belirtilen ürünler için satış, teklif sonrası ayrıca kararlaştırılan fiyat üzerinden yapılır.</li>
         </ul>
         <h2>3. Teslimat</h2>
@@ -489,7 +503,7 @@ export const legal: Record<LegalSlug, { title: string; description: string; body
         ))}
         <h2>Üçüncü taraflar</h2>
         <p>
-          Ödeme adımında {policy.paymentProvider} tarafından sunulan güvenli ödeme sayfası, ödeme güvenliği için kendi çerezlerini
+          Ödeme adımında ödeme kuruluşu tarafından sunulan güvenli ödeme sayfası, ödeme güvenliği için kendi çerezlerini
           kullanabilir. Bu çerezler ilgili kuruluşun politikalarına tabidir.
         </p>
         <h2>Hukuki sebep</h2>

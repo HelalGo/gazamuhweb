@@ -25,6 +25,8 @@ export const senderReady = (s: Sender) => !!process.env.SMTP_HOST && !!account(s
 // Size gelen bildirimler: bilgi talepleri destek@, siparişler siparis@ kutusuna
 export const adminInbox = () => process.env.MAIL_TO || mailboxes.destek;
 export const orderInbox = () => process.env.ORDER_MAIL_TO || mailboxes.siparis;
+// Sipariş bildirimleri hem sipariş hem destek kutusuna gider
+export const orderInboxes = () => [...new Set([orderInbox(), adminInbox()])].join(", ");
 
 const transports = new Map<string, Transporter>();
 function getTransport(user: string, pass: string) {
@@ -98,7 +100,15 @@ export const h = {
 export type Line = { name: string; qty: number; price: number; image?: string | null };
 const money = (n: number) => `${n.toLocaleString("tr-TR", { minimumFractionDigits: 0, maximumFractionDigits: 2 })} ₺`;
 
-export function itemsTable(items: Line[], total: number) {
+export function itemsTable(items: Line[], total: number, b?: { subtotal?: number | null; discount?: number; shipping?: number; coupon?: string | null }) {
+  // ara toplam / kargo / indirim satırları (eski siparişlerde bu bilgiler yoktur)
+  const row = (k: string, v: string, color = C.text) => `<tr><td></td><td style="${FONT}padding:10px 12px 0;font-size:13px;color:${C.muted}">${k}</td>
+    <td align="right" style="${FONT}padding:10px 0 0;font-size:14px;font-weight:bold;color:${color};white-space:nowrap">${v}</td></tr>`;
+  const extra = b && b.subtotal != null
+    ? row("Ara toplam", money(b.subtotal)) +
+      row("Kargo", b.shipping ? money(b.shipping) : "Ücretsiz") +
+      (b.discount ? row(`İndirim${b.coupon ? ` (${esc(b.coupon)})` : ""}`, `−${money(b.discount)}`, "#15803d") : "")
+    : "";
   const rows = items.map((i) => `<tr>
       <td style="padding:14px 0;border-bottom:1px solid ${C.border};width:64px;vertical-align:top">
         ${i.image ? `<img src="${esc(i.image.startsWith("http") ? i.image : SITE_URL + i.image)}" width="56" height="56" alt="" style="display:block;border-radius:4px;object-fit:cover;background:${C.surface}">` : `<div style="width:56px;height:56px;background:${C.surface};border-radius:4px"></div>`}
@@ -106,7 +116,7 @@ export function itemsTable(items: Line[], total: number) {
       <td style="${FONT}padding:14px 12px;border-bottom:1px solid ${C.border};font-size:14px;color:${C.text};vertical-align:top">${esc(i.name)}<br><span style="font-size:12px;color:${C.muted}">${i.qty} adet × ${money(i.price)}</span></td>
       <td align="right" style="${FONT}padding:14px 0;border-bottom:1px solid ${C.border};font-size:14px;font-weight:bold;color:${C.text};white-space:nowrap;vertical-align:top">${money(i.price * i.qty)}</td>
     </tr>`).join("");
-  return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:8px 0 4px">${rows}
+  return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:8px 0 4px">${rows}${extra}
     <tr><td></td><td style="${FONT}padding:16px 12px 0;font-size:13px;color:${C.muted}">Toplam (KDV dahil)</td>
     <td align="right" style="${FONT}padding:16px 0 0;font-size:20px;font-weight:bold;color:${C.primary};white-space:nowrap">${money(total)}</td></tr></table>`;
 }

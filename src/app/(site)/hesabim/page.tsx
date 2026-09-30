@@ -30,6 +30,7 @@ export default async function Account() {
         </div>
         <div className="flex items-center gap-3 text-sm font-semibold">
           <Link href="/favoriler" className="rounded-[4px] bg-surface px-5 py-2.5 hover:bg-surface-alt">Favorilerim</Link>
+          <Link href="/hesabim/iletisim-tercihleri" className="rounded-[4px] bg-surface px-5 py-2.5 hover:bg-surface-alt">İletişim Tercihleri</Link>
           <form action={logout}><button className="rounded-[4px] bg-surface px-5 py-2.5 hover:bg-surface-alt">Çıkış Yap</button></form>
         </div>
       </div>
@@ -56,6 +57,10 @@ export default async function Account() {
           })}
         </ul>
       )}
+
+      <p className="mt-16 border-t border-border pt-6 text-sm text-muted">
+        Hesabınızı kapatmak mı istiyorsunuz? <Link href="/hesap-silme" className="font-semibold text-red-600 hover:underline">Hesabımı sil</Link>
+      </p>
     </div>
   );
 }

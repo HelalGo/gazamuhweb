@@ -40,9 +40,11 @@ export const contact = {
 export const footerLinks = {
   Kurumsal: [
     { label: "Hakkımızda", href: "/hakkimizda" },
+    { label: "Blog", href: "/blog" },
     { label: "İletişim", href: "/iletisim" },
     { label: "Bilgi Al", href: "/bilgi-al" },
     { label: "Kullanım Koşulları", href: "/kullanim-kosullari" },
+    { label: "Site Haritası", href: "/site-haritasi" },
   ],
   "Müşteri Hizmetleri": [
     { label: "Sipariş Takibi", href: "/hesabim" },
@@ -58,6 +60,16 @@ export const footerLinks = {
     { label: "Çerez Politikası", href: "/cerez-politikasi" },
   ],
 };
+
+// Havale / EFT ile ödeme (kartla ödeme altyapısı hazırlanana kadar); web ve mobilde gösterilir
+export const bank = {
+  name: "Kuveyt Türk",
+  holder: "GAZA MÜHENDİSLİK İNŞAAT TAAHHÜT VE TİCARET LİMİTED ŞİRKETİ",
+  iban: "TR490020500009635656700001",
+  logo: "/price/kuveytturk.svg",
+};
+export const ibanGroups = (iban: string) => iban.replace(/(.{4})/g, "$1 ").trim();
+export const PAYMENT_SOON = "Kartla ödeme altyapısı hazırlanıyor, yakında hizmetinizde.";
 
 // Ticaret sicil tasdiknamesi ve vergi levhasındaki resmi bilgiler
 export const company = {

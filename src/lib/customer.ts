@@ -38,3 +38,25 @@ export async function getFavoriteIds(userId: number): Promise<string[]> {
     return [];
   }
 }
+
+// Hesap silme (KVKK; App Store / Google Play zorunluluğu). Parola doğrulandıktan sonra çağrılır.
+// Üyelik, favoriler, yorumlar ve telefon bağlantıları silinir; bülten izni kapatılır.
+// Siparişler vergi / ticaret mevzuatı gereği saklanır, yalnızca hesaptan ayrılır (user_id = 0).
+export async function deleteAccount(userId: number, email: string) {
+  const c = await db().getConnection();
+  try {
+    await c.beginTransaction();
+    await c.query("UPDATE orders SET user_id = 0 WHERE user_id = ?", [userId]);
+    await c.query("DELETE FROM favorites WHERE user_id = ?", [userId]);
+    await c.query("DELETE FROM reviews WHERE user_id = ?", [userId]);
+    await c.query("UPDATE push_tokens SET user_id = NULL WHERE user_id = ?", [userId]).catch(() => {});
+    await c.query("UPDATE subscribers SET active = 0, unsubscribed_at = NOW() WHERE email = ? AND active = 1", [email]).catch(() => {});
+    await c.query("DELETE FROM users WHERE id = ?", [userId]);
+    await c.commit();
+  } catch (e) {
+    await c.rollback();
+    throw e;
+  } finally {
+    c.release();
+  }
+}

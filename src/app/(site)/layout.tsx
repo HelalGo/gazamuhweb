@@ -5,9 +5,14 @@ import { SiteProvider } from "@/components/SiteProvider";
 import { WhatsAppButton } from "@/components/WhatsAppButton";
 import { dbConfigured, getFavoriteIds, getUser } from "@/lib/customer";
 import { getMenu } from "@/lib/menu";
+import { seasonalNav } from "@/lib/season";
+
+// Üye bilgisi ve veritabanı durumu her istekte okunur. Derleme anında sabitlenirse (ör. /sepet) sepetten
+// siparişe geçerken üyelik "kapalı" görünür ve "Siparişi Onayla" butonu kilitli kalır.
+export const dynamic = "force-dynamic";
 
 export default async function SiteLayout({ children }: { children: React.ReactNode }) {
-  const [user, menu] = await Promise.all([getUser(), getMenu()]);
+  const [user, menu, cats] = await Promise.all([getUser(), getMenu(), seasonalNav()]);
   const favIds = user ? await getFavoriteIds(user.id) : [];
   // Popüler aramalar: en çok ürünü olan kategoriler ve markalar
   const brandTotals = new Map<string, number>();
@@ -18,7 +23,7 @@ export default async function SiteLayout({ children }: { children: React.ReactNo
     <SiteProvider user={user ? { name: user.firstName } : null} favIds={favIds} enabled={dbConfigured()}>
       <Header menu={menu} popular={popular} />
       {children}
-      <Footer />
+      <Footer cats={cats} />
       <WhatsAppButton />
       <CookieConsent />
     </SiteProvider>

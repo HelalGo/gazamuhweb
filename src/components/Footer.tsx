@@ -1,10 +1,16 @@
 import Image from "next/image";
 import Link from "next/link";
 import { LockKeyhole, Mail, MapPin, Phone } from "lucide-react";
-import { company, contact, footerLinks, igdas, nav } from "@/lib/site";
+import { company, contact, footerLinks, igdas } from "@/lib/site";
 import { IgdasBadge } from "./IgdasBadge";
 import { Newsletter } from "./Newsletter";
 import { SocialIcons } from "./SocialIcons";
+
+const cards = [
+  { name: "Visa", src: "/price/visa.svg", w: 60, h: 20 },
+  { name: "Mastercard", src: "/price/mastercard.svg", w: 40, h: 25 },
+  { name: "Troy", src: "/price/troy.png", w: 50, h: 24 },
+];
 
 const info = [
   ["Ticaret Ünvanı", company.title],
@@ -16,7 +22,8 @@ const info = [
   ["İGDAŞ Yetki No", igdas.no],
 ];
 
-export function Footer() {
+// cats: mevsime göre sıralı kategori bağlantıları (lib/season)
+export function Footer({ cats }: { cats: { label: string; href: string }[] }) {
   return (
     <footer className="mt-24 bg-surface">
       <Newsletter />
@@ -36,7 +43,7 @@ export function Footer() {
         <div>
           <h4 className="mb-4 text-sm font-bold text-primary">Kategoriler</h4>
           <ul className="space-y-2 text-sm text-muted">
-            {nav.map((n) => (
+            {cats.map((n) => (
               <li key={n.label}><a href={n.href} className="hover:text-foreground">{n.label}</a></li>
             ))}
           </ul>
@@ -76,17 +83,23 @@ export function Footer() {
         </dl>
       </div>
 
-      {/* Ödeme: PayTR onayından sonra kart logoları eklenecek */}
+      {/* Güvenli ödeme: solda bilgi, sağda kart logoları (public/price) */}
       <div className="mx-auto w-full max-w-7xl px-4 md:px-6">
-        <div className="flex flex-col gap-3 border-t border-border py-6 md:flex-row md:items-center md:justify-between">
-          <p className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm font-semibold text-foreground/80">
-            <LockKeyhole size={16} className="text-primary" />
-            <span>Visa</span><span className="text-border">|</span><span>Mastercard</span><span className="text-border">|</span><span>Troy</span><span className="text-border">|</span>
-            <span className="text-primary">PayTR ile Güvenli Ödeme</span>
-          </p>
-          <p className="max-w-xl text-xs leading-relaxed text-muted md:text-right">
-            Bu internet sitesindeki ödeme hizmetleri PAYTR Ödeme ve Elektronik Para Kuruluşu A.Ş. tarafından sağlanmaktadır.
-          </p>
+        <div className="flex flex-col gap-5 border-t border-border py-6 md:flex-row md:items-center md:justify-between">
+          <div className="flex items-start gap-3">
+            <LockKeyhole size={20} className="mt-0.5 shrink-0 text-primary" />
+            <div>
+              <p className="text-sm font-bold text-foreground">Güvenli alışveriş</p>
+              <p className="mt-0.5 max-w-xl text-xs leading-relaxed text-muted">Siparişlerinizi sitemizden ya da WhatsApp üzerinden verebilir, ödemeyi havale / EFT ile yapabilirsiniz. Kartla ödeme altyapısı hazırlanıyor, yakında hizmetinizde.</p>
+            </div>
+          </div>
+          <ul className="flex shrink-0 items-center gap-3" aria-label="Kabul edilen kartlar">
+            {cards.map((c) => (
+              <li key={c.name} className="grid h-11 w-[72px] place-items-center rounded-[4px] border border-border bg-white px-2">
+                <Image src={c.src} alt={c.name} width={c.w} height={c.h} unoptimized className="h-6 w-auto object-contain" />
+              </li>
+            ))}
+          </ul>
         </div>
       </div>
 

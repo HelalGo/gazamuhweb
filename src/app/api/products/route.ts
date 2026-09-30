@@ -4,5 +4,5 @@ export const dynamic = "force-dynamic";
 
 // Web ve mobil uygulama ürünleri buradan okur.
 export async function GET() {
-  return Response.json(await getProducts());
+  return Response.json(await getProducts(), { headers: { "Access-Control-Allow-Origin": "*" } });
 }

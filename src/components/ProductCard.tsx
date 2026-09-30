@@ -2,14 +2,14 @@
 import Image from "next/image";
 import Link from "next/link";
 import { motion } from "motion/react";
-import { Info, ShoppingBag } from "lucide-react";
+import { Info, Minus, Plus, ShoppingBag } from "lucide-react";
 import type { Product } from "@/lib/data";
 import { tl } from "@/lib/utils";
 import { useCart } from "@/store/cart";
 import { FavoriteButton } from "./FavoriteButton";
+import { useCartReady } from "./useCartReady";
 
 export function ProductCard({ product: p, index = 0 }: { product: Product; index?: number }) {
-  const add = useCart((s) => s.add);
   const noPrice = p.price <= 0;
   const discount = p.oldPrice && p.oldPrice > p.price ? Math.round((1 - p.price / p.oldPrice) * 100) : 0;
   const hover = p.images[0]; // üzerine gelince görünen ikinci görsel
@@ -67,12 +67,32 @@ export function ProductCard({ product: p, index = 0 }: { product: Product; index
             <Info size={15} />Bilgi al
           </Link>
         ) : (
-          <motion.button whileTap={{ scale: 0.94 }} onClick={() => add(p)} aria-label="Sepete ekle" title="Sepete ekle"
-            className="inline-flex h-10 shrink-0 items-center gap-1.5 rounded-[4px] bg-primary px-3 text-xs font-bold uppercase tracking-wider text-white transition-colors hover:bg-primary/90">
-            <ShoppingBag size={15} />Sepete ekle
-          </motion.button>
+          <CartControl product={p} />
         )}
       </div>
     </motion.article>
+  );
+}
+
+// Sepette yoksa "Sepete ekle"; sepetteyse sepet sayfasındaki gibi − adet + (1'in altına inince sepetten çıkar)
+function CartControl({ product: p }: { product: Product }) {
+  const ready = useCartReady();
+  const qty = useCart((s) => s.items.find((i) => i.id === p.id)?.qty ?? 0);
+  const { add, setQty, remove } = useCart.getState();
+  const btn = "grid h-10 w-9 place-items-center text-primary transition-colors hover:bg-primary hover:text-white disabled:opacity-40 disabled:hover:bg-transparent disabled:hover:text-primary";
+  if (!ready || qty === 0)
+    return (
+      <motion.button whileTap={{ scale: 0.94 }} onClick={() => add(p)} disabled={!p.inStock} aria-label="Sepete ekle" title="Sepete ekle"
+        className="inline-flex h-10 shrink-0 items-center gap-1.5 rounded-[4px] bg-primary px-3 text-xs font-bold uppercase tracking-wider text-white transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:bg-surface-alt disabled:text-muted">
+        <ShoppingBag size={15} />{p.inStock ? "Sepete ekle" : "Tükendi"}
+      </motion.button>
+    );
+  return (
+    <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
+      className="flex h-10 shrink-0 items-center overflow-hidden rounded-[4px] border border-primary" role="group" aria-label="Sepetteki adet">
+      <button className={btn} aria-label={qty === 1 ? "Sepetten çıkar" : "Azalt"} onClick={() => (qty <= 1 ? remove(p.id) : setQty(p.id, qty - 1))}><Minus size={15} /></button>
+      <span className="w-7 text-center text-sm font-bold tabular-nums text-primary" aria-live="polite">{qty}</span>
+      <button className={btn} aria-label="Artır" onClick={() => setQty(p.id, qty + 1)} disabled={qty >= 20}><Plus size={15} /></button>
+    </motion.div>
   );
 }

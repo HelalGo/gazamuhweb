@@ -103,3 +103,60 @@ export async function getBrandLogos(): Promise<BrandLogo[]> {
     return [];
   }
 }
+
+/* ---------- Mobil uygulama tanıtım ekranları ---------- */
+export type OnboardingSlide = { id: string; title: string; text: string; image: string };
+
+// Uygulamayı ilk kez açan kullanıcıya gösterilen tanıtım sayfaları; tablo yoksa oluşturulur
+export async function ensureOnboardingTable() {
+  await db().query(`CREATE TABLE IF NOT EXISTS app_onboarding (
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    sort_order INT NOT NULL DEFAULT 0,
+    active TINYINT(1) NOT NULL DEFAULT 1,
+    title VARCHAR(120) NOT NULL,
+    text VARCHAR(400) NULL,
+    image_url VARCHAR(500) NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  ) CHARACTER SET utf8mb4`);
+}
+
+export async function getOnboarding(): Promise<OnboardingSlide[]> {
+  if (!dbOn()) return [];
+  try {
+    await ensureOnboardingTable();
+    const [rows] = await db().query<RowDataPacket[]>("SELECT * FROM app_onboarding WHERE active = 1 AND image_url IS NOT NULL ORDER BY sort_order, id");
+    return rows.map((r) => ({ id: String(r.id), title: r.title, text: r.text ?? "", image: r.image_url }));
+  } catch (e) {
+    console.error("[cms] tanıtım ekranları okunamadı:", (e as Error).message);
+    return [];
+  }
+}
+
+/* ---------- Mobil uygulama ana sayfa bannerları ---------- */
+// target: "" (bağlantı yok) | "kampanyalar" | "kategori:<ad>" | site adresi ("/urun/..." ya da https://...)
+export type AppBanner = { id: string; image: string; title: string; text: string; target: string };
+
+export async function ensureAppBannerTable() {
+  await db().query(`CREATE TABLE IF NOT EXISTS app_banners (
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    sort_order INT NOT NULL DEFAULT 0,
+    active TINYINT(1) NOT NULL DEFAULT 1,
+    title VARCHAR(120) NULL,
+    text VARCHAR(200) NULL,
+    target VARCHAR(300) NULL,
+    image_url VARCHAR(500) NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  ) CHARACTER SET utf8mb4`);
+}
+
+export async function getAppBanners(): Promise<AppBanner[]> {
+  if (!dbOn()) return [];
+  try {
+    await ensureAppBannerTable();
+    const [rows] = await db().query<RowDataPacket[]>("SELECT * FROM app_banners WHERE active = 1 AND image_url IS NOT NULL ORDER BY sort_order, id");
+    return rows.map((r) => ({ id: String(r.id), image: r.image_url, title: r.title ?? "", text: r.text ?? "", target: r.target ?? "" }));
+  } catch (e) {
+    console.error("[cms] uygulama bannerları okunamadı:", (e as Error).message);
+    return [];
+  }
+}

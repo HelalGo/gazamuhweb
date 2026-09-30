@@ -1,7 +1,7 @@
 import { policy } from "./policy";
 import { SITE_URL, esc, h, itemsTable, layout, toText, type Line, type Mail, type Sender } from "./mail";
 import { orderNo, type Status } from "./orders";
-import { company, contact } from "./site";
+import { bank, company, contact, ibanGroups } from "./site";
 
 const build = (subject: string, preheader: string, body: string, footerNote?: string): Mail => {
   const html = layout({ preheader, body, footerNote });
@@ -28,7 +28,10 @@ export function welcomeMail(u: { firstName: string; email: string }) {
 export type OrderMailData = {
   id: number; createdAt: Date; fullName: string; email: string; phone: string; city: string; address: string; note?: string | null;
   total: number; items: Line[];
+  subtotal?: number | null; discount?: number; shipping?: number; coupon?: string | null;
+  cargo?: string | null; trackingNo?: string | null; trackingUrl?: string | null;
 };
+const STEPS = ["Alındı", "Ödeme alındı", "Hazırlanıyor", "Kargoda", "Teslim edildi"];
 
 const address = (o: OrderMailData) => `${esc(o.fullName)}<br>${esc(o.address)}<br>${esc(o.city)}<br>${esc(o.phone)}`;
 
@@ -37,12 +40,13 @@ export function orderReceivedMail(o: OrderMailData) {
   const no = orderNo(o.id);
   return build(
     `Siparişiniz alındı — ${no}`,
-    `${no} numaralı siparişiniz bize ulaştı. Ödeme ve teslimat için sizinle iletişime geçeceğiz.`,
+    `${no} numaralı siparişiniz bize ulaştı. Ödemeyi havale / EFT ile yapabilirsiniz.`,
     h.eyebrow("Sipariş alındı") +
       h.title(`Teşekkürler ${esc(o.fullName.split(" ")[0])},<br>siparişiniz bize ulaştı.`) +
-      h.p(`<strong>${no}</strong> numaralı siparişiniz ${o.createdAt.toLocaleString("tr-TR", { dateStyle: "long", timeStyle: "short" })} tarihinde oluşturuldu. Ekibimiz siparişinizi kontrol ettikten sonra ödeme ve teslimat ayrıntıları için sizinle iletişime geçecek.`) +
-      h.steps(["Alındı", "Onaylandı", "Kargoda", "Teslim edildi"], 0) +
-      itemsTable(o.items, o.total) +
+      h.p(`<strong>${no}</strong> numaralı siparişiniz ${o.createdAt.toLocaleString("tr-TR", { dateStyle: "long", timeStyle: "short" })} tarihinde oluşturuldu. Ödemenizi aşağıdaki hesaba havale / EFT ile yapabilirsiniz; ödemeniz ulaştığında siparişiniz onaylanır ve hazırlanmaya başlar.`) +
+      h.steps(STEPS, 0) +
+      h.box([["Banka", esc(bank.name)], ["Alıcı", esc(bank.holder)], ["IBAN", esc(ibanGroups(bank.iban))], ["Tutar", `${o.total.toLocaleString("tr-TR")} ₺`], ["Açıklama", no]], "Havale / EFT bilgileri") +
+      itemsTable(o.items, o.total, o) +
       h.divider() +
       h.box([["Teslimat adresi", address(o)], ...(o.note ? [["Sipariş notu", esc(o.note)] as [string, string]] : [])], "Teslimat") +
       h.button("Siparişimi görüntüle", `${SITE_URL}/hesabim/siparis/${o.id}`) +
@@ -63,16 +67,17 @@ export function orderAdminMail(o: OrderMailData) {
     h.eyebrow("Yeni sipariş") +
       h.title(`${no}`) +
       h.p(`<strong>${esc(o.fullName)}</strong> sitemizden yeni bir sipariş verdi. Müşteriyle iletişime geçip siparişi onaylayabilirsiniz.`) +
-      itemsTable(o.items, o.total) +
+      itemsTable(o.items, o.total, o) +
       h.box([["Ad soyad", esc(o.fullName)], ["Telefon", esc(o.phone)], ["E-posta", esc(o.email)], ["Adres", `${esc(o.address)}<br>${esc(o.city)}`], ...(o.note ? [["Not", esc(o.note)] as [string, string]] : [])], "Müşteri") +
       h.button("Siparişi panelde aç", `${SITE_URL}/admin/orders/${o.id}`)
   );
 }
 
 const STATUS_TEXT: Partial<Record<Status, { subject: string; eyebrow: string; title: string; text: string; step: number }>> = {
-  confirmed: { subject: "Siparişiniz onaylandı", eyebrow: "Sipariş onaylandı", title: "Siparişiniz onaylandı ve hazırlanıyor.", text: "Siparişinizi onayladık. Ürünleriniz özenle hazırlanıyor; kargoya verildiğinde size ayrıca haber vereceğiz.", step: 1 },
-  shipped: { subject: "Siparişiniz kargoya verildi", eyebrow: "Kargoda", title: "Siparişiniz yola çıktı.", text: "Siparişiniz kargoya teslim edildi. Teslim alırken paketi görevli önünde kontrol etmenizi, hasar varsa tutanak tutturmanızı rica ederiz.", step: 2 },
-  delivered: { subject: "Siparişiniz teslim edildi", eyebrow: "Teslim edildi", title: "Siparişiniz teslim edildi.", text: "Ürünlerinizi güle güle kullanın. Kurulum veya kullanımla ilgili bir sorunuz olursa bize ulaşabilirsiniz. Deneyiminizi ürün sayfasına yorum olarak yazarsanız diğer kullanıcılara da yardımcı olursunuz.", step: 3 },
+  confirmed: { subject: "Ödemeniz alındı", eyebrow: "Ödeme alındı", title: "Ödemeniz alındı, siparişiniz onaylandı.", text: "Ödemeniz hesabımıza ulaştı ve siparişiniz onaylandı. Ürünleriniz hazırlanmaya başladığında size haber vereceğiz.", step: 1 },
+  preparing: { subject: "Siparişiniz hazırlanıyor", eyebrow: "Hazırlanıyor", title: "Siparişiniz hazırlanıyor.", text: "Ürünleriniz özenle hazırlanıyor; kargoya verildiğinde takip bilgisiyle size ayrıca haber vereceğiz.", step: 2 },
+  shipped: { subject: "Siparişiniz kargoya verildi", eyebrow: "Kargoda", title: "Siparişiniz yola çıktı.", text: "Siparişiniz kargoya teslim edildi. Teslim alırken paketi görevli önünde kontrol etmenizi, hasar varsa tutanak tutturmanızı rica ederiz.", step: 3 },
+  delivered: { subject: "Siparişiniz teslim edildi", eyebrow: "Teslim edildi", title: "Siparişiniz teslim edildi.", text: "Ürünlerinizi güle güle kullanın. Kurulum veya kullanımla ilgili bir sorunuz olursa bize ulaşabilirsiniz. Deneyiminizi ürün sayfasına yorum olarak yazarsanız diğer kullanıcılara da yardımcı olursunuz.", step: 4 },
   cancelled: { subject: "Siparişiniz iptal edildi", eyebrow: "Sipariş iptal edildi", title: "Siparişiniz iptal edildi.", text: `Siparişiniz iptal edilmiştir. Ödeme yaptıysanız ücret iadesi en geç ${policy.refundDays} gün içinde ödemede kullandığınız yöntemle yapılır. Bir yanlışlık olduğunu düşünüyorsanız lütfen bizimle iletişime geçin.`, step: -1 },
 };
 export const statusMailFor = (s: Status) => !!STATUS_TEXT[s];
@@ -86,9 +91,12 @@ export function orderStatusMail(o: OrderMailData, status: Status) {
     h.eyebrow(t.eyebrow) +
       h.title(esc(t.title)) +
       h.p(`Merhaba ${esc(o.fullName.split(" ")[0])}, ${t.text.charAt(0).toLocaleLowerCase("tr")}${t.text.slice(1)}`) +
-      (t.step >= 0 ? h.steps(["Alındı", "Onaylandı", "Kargoda", "Teslim edildi"], t.step) : "") +
-      h.box([["Sipariş no", no], ["Toplam", `${o.total.toLocaleString("tr-TR")} ₺`]]) +
-      itemsTable(o.items, o.total) +
+      (t.step >= 0 ? h.steps(STEPS, t.step) : "") +
+      h.box([["Sipariş no", no], ["Toplam", `${o.total.toLocaleString("tr-TR")} ₺`],
+        ...(status === "shipped" && o.cargo ? [["Kargo", esc(o.cargo)] as [string, string]] : []),
+        ...(status === "shipped" && o.trackingNo ? [["Takip no", o.trackingUrl ? `<a href="${esc(o.trackingUrl)}" style="color:#1a3e85">${esc(o.trackingNo)}</a>` : esc(o.trackingNo)] as [string, string]] : []),
+      ]) +
+      itemsTable(o.items, o.total, o) +
       h.button("Siparişimi görüntüle", `${SITE_URL}/hesabim/siparis/${o.id}`),
     TRANSACTIONAL
   );

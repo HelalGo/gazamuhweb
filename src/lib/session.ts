@@ -1,7 +1,7 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
 import { cookies } from "next/headers";
 
-export type Kind = "admin" | "user";
+export type Kind = "admin" | "user" | "app";
 
 function secret() {
   const s = process.env.ADMIN_SESSION_SECRET;
@@ -11,10 +11,30 @@ function secret() {
 
 const sign = (payload: string) => createHmac("sha256", secret()).update(payload).digest("base64url");
 
-// İmzalı çerez: "<yük>.<imza>". Yükteki "k" (tür) sayesinde yönetici çerezi müşteri çerezi yerine geçemez.
-export async function setSession(cookie: string, kind: Kind, id: number, maxAgeSec: number) {
+// İmzalı belirteç: "<yük>.<imza>". Yükteki "k" (tür) sayesinde yönetici belirteci müşteri belirteci yerine geçemez.
+// Çerezlerde ve mobil uygulamanın "Authorization: Bearer" başlığında (tür "app") aynı biçim kullanılır.
+export function makeToken(kind: Kind, id: number, maxAgeSec: number) {
   const payload = Buffer.from(JSON.stringify({ id, k: kind, exp: Date.now() + maxAgeSec * 1000 })).toString("base64url");
-  (await cookies()).set(cookie, `${payload}.${sign(payload)}`, {
+  return `${payload}.${sign(payload)}`;
+}
+
+export function readToken(token: string | null | undefined, kind: Kind): number | null {
+  if (!token) return null;
+  const [payload, sig] = token.split(".");
+  if (!payload || !sig) return null;
+  const good = Buffer.from(sign(payload));
+  const given = Buffer.from(sig);
+  if (good.length !== given.length || !timingSafeEqual(good, given)) return null;
+  try {
+    const { id, k, exp } = JSON.parse(Buffer.from(payload, "base64url").toString());
+    return k === kind && typeof id === "number" && exp > Date.now() ? id : null;
+  } catch {
+    return null;
+  }
+}
+
+export async function setSession(cookie: string, kind: Kind, id: number, maxAgeSec: number) {
+  (await cookies()).set(cookie, makeToken(kind, id, maxAgeSec), {
     httpOnly: true,
     sameSite: "lax",
     secure: process.env.NODE_ENV === "production",
@@ -28,17 +48,5 @@ export async function clearSession(cookie: string) {
 }
 
 export async function readSession(cookie: string, kind: Kind): Promise<number | null> {
-  const token = (await cookies()).get(cookie)?.value;
-  if (!token) return null;
-  const [payload, sig] = token.split(".");
-  if (!payload || !sig) return null;
-  const good = Buffer.from(sign(payload));
-  const given = Buffer.from(sig);
-  if (good.length !== given.length || !timingSafeEqual(good, given)) return null;
-  try {
-    const { id, k, exp } = JSON.parse(Buffer.from(payload, "base64url").toString());
-    return k === kind && typeof id === "number" && exp > Date.now() ? id : null;
-  } catch {
-    return null;
-  }
+  return readToken((await cookies()).get(cookie)?.value, kind);
 }

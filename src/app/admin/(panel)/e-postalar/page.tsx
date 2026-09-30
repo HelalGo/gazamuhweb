@@ -1,5 +1,5 @@
 import { Send } from "lucide-react";
-import { adminInbox, mailConfigured, orderInbox, senderReady, type Sender } from "@/lib/mail";
+import { adminInbox, mailConfigured, orderInboxes, senderReady, type Sender } from "@/lib/mail";
 import { sampleMails } from "@/lib/mails";
 import { mailboxes } from "@/lib/site";
 import { sendTestMails } from "../../mail-actions";
@@ -37,7 +37,7 @@ export default async function MailsAdmin({ searchParams }: { searchParams: Promi
             </li>
           ))}
         </ul>
-        <p className="mt-4 text-xs text-muted">Bildirimler: bilgi talepleri <strong>{adminInbox()}</strong>, siparişler <strong>{orderInbox()}</strong> adresine gelir.</p>
+        <p className="mt-4 text-xs text-muted">Bildirimler: bilgi talepleri <strong>{adminInbox()}</strong>, siparişler <strong>{orderInboxes()}</strong> adreslerine gelir.</p>
       </section>
 
       <form action={sendTestMails} className={`${card} mb-8`}>
@@ -66,7 +66,7 @@ export default async function MailsAdmin({ searchParams }: { searchParams: Promi
                 <p className="truncate text-xs text-muted">Gönderen: {mailboxes[m.from]}</p>
               </div>
               <span className={`rounded-full px-2.5 py-1 text-[11px] font-bold ${m.to === "Size" ? "bg-amber-50 text-amber-700" : "bg-blue-50 text-blue-700"}`}>
-                {m.to === "Size" ? `Size (${m.key === "order-admin" ? orderInbox() : adminInbox()})` : "Müşteriye"}
+                {m.to === "Size" ? `Size (${m.key === "order-admin" ? orderInboxes() : adminInbox()})` : "Müşteriye"}
               </span>
             </header>
             <iframe title={m.label} srcDoc={m.mail.html} className="h-[640px] w-full bg-surface" sandbox="" loading="lazy" />

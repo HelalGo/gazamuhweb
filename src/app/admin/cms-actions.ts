@@ -2,15 +2,15 @@
 import type { ResultSetHeader, RowDataPacket } from "mysql2";
 import { redirect } from "next/navigation";
 import { requireAdmin } from "@/lib/auth";
-import { ensureBrandTable } from "@/lib/cms";
+import { ensureAppBannerTable, ensureBrandTable, ensureOnboardingTable } from "@/lib/cms";
 import { db } from "@/lib/db";
-import { BRAND_REQ, CAMPAIGN_LAYOUTS, HERO_MOBILE_REQ, HERO_REQ, TILE_REQ, safeUrl, type CampaignLayout } from "@/lib/layouts";
+import { APP_BANNER_REQ, BRAND_REQ, CAMPAIGN_LAYOUTS, ONBOARD_REQ, HERO_MOBILE_REQ, HERO_REQ, TILE_REQ, safeUrl, type CampaignLayout } from "@/lib/layouts";
 import { removeImage, saveImage, type Req } from "@/lib/uploads";
 
 const str = (f: FormData, k: string, max: number) => String(f.get(k) ?? "").trim().slice(0, max) || null;
 const back = (path: string, err: string): never => redirect(`${path}?err=${encodeURIComponent(err)}`);
 
-type Table = "hero_slides" | "showcase_tiles" | "campaign_blocks" | "brand_logos";
+type Table = "hero_slides" | "showcase_tiles" | "campaign_blocks" | "brand_logos" | "app_onboarding" | "app_banners";
 
 async function nextOrder(table: Table) {
   const [r] = await db().query<RowDataPacket[]>(`SELECT COALESCE(MAX(sort_order), 0) + 1 AS n FROM ${table}`);
@@ -99,6 +99,55 @@ export async function saveBrand(f: FormData) {
   redirect("/admin/markalar?saved=1");
 }
 
+/* ---------- Mobil uygulama tanıtım ekranları ---------- */
+export async function saveOnboarding(f: FormData) {
+  await requireAdmin();
+  await ensureOnboardingTable();
+  const id = Number(f.get("id")) || null;
+  const errPath = id ? `/admin/uygulama-tanitim/${id}` : "/admin/uygulama-tanitim/new";
+  const [old] = id ? await db().query<RowDataPacket[]>("SELECT image_url FROM app_onboarding WHERE id = ?", [id]) : [[] as RowDataPacket[]];
+
+  const title = str(f, "title", 120);
+  if (!title) back(errPath, "Başlık zorunlu.");
+  const image = await upload(f, "image", ONBOARD_REQ, errPath);
+  if (!id && !image) back(errPath, "Tanıtım sayfası için bir görsel yüklemelisiniz.");
+
+  const v: Record<string, unknown> = { title, text: str(f, "text", 400), active: f.get("active") ? 1 : 0 };
+  if (image) { v.image_url = image; await removeImage(old[0]?.image_url); }
+
+  if (id) await db().query("UPDATE app_onboarding SET ? WHERE id = ?", [v, id]);
+  else await db().query("INSERT INTO app_onboarding SET ?", [{ ...v, sort_order: await nextOrder("app_onboarding") }]);
+  redirect("/admin/uygulama-tanitim?saved=1");
+}
+
+/* ---------- Mobil uygulama ana sayfa bannerları ---------- */
+export async function saveAppBanner(f: FormData) {
+  await requireAdmin();
+  await ensureAppBannerTable();
+  const id = Number(f.get("id")) || null;
+  const errPath = id ? `/admin/uygulama-banner/${id}` : "/admin/uygulama-banner/new";
+  const [old] = id ? await db().query<RowDataPacket[]>("SELECT image_url FROM app_banners WHERE id = ?", [id]) : [[] as RowDataPacket[]];
+
+  const image = await upload(f, "image", APP_BANNER_REQ, errPath);
+  if (!id && !image) back(errPath, "Banner için bir görsel yüklemelisiniz.");
+
+  // Bağlantı: özel site adresi yazıldıysa o, yoksa listeden seçilen uygulama sayfası
+  const custom = String(f.get("target_url") ?? "").trim();
+  let target = String(f.get("target") ?? "");
+  if (custom) {
+    const url = safeUrl(custom);
+    if (!url) back(errPath, "Site adresi / ile başlamalı (örn. /urun/...) ya da https:// ile tam adres olmalı.");
+    target = url!;
+  } else if (target !== "kampanyalar" && !target.startsWith("kategori:")) target = "";
+
+  const v: Record<string, unknown> = { title: str(f, "title", 120), text: str(f, "text", 200), target: target.slice(0, 300) || null, active: f.get("active") ? 1 : 0 };
+  if (image) { v.image_url = image; await removeImage(old[0]?.image_url); }
+
+  if (id) await db().query("UPDATE app_banners SET ? WHERE id = ?", [v, id]);
+  else await db().query("INSERT INTO app_banners SET ?", [{ ...v, sort_order: await nextOrder("app_banners") }]);
+  redirect("/admin/uygulama-banner?saved=1");
+}
+
 /* ---------- Kampanya blokları ---------- */
 export async function saveCampaign(f: FormData) {
   await requireAdmin();
@@ -133,6 +182,7 @@ export async function saveCampaign(f: FormData) {
 /* ---------- Ortak: sil / sırala / göster-gizle ---------- */
 const PATHS: Record<Table, string> = {
   hero_slides: "/admin/slider", showcase_tiles: "/admin/vitrin", campaign_blocks: "/admin/kampanyalar", brand_logos: "/admin/markalar",
+  app_onboarding: "/admin/uygulama-tanitim", app_banners: "/admin/uygulama-banner",
 };
 const isTable = (t: unknown): t is Table => typeof t === "string" && t in PATHS;
 

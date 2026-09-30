@@ -6,8 +6,8 @@ import { ArrowLeft, ArrowRight } from "lucide-react";
 import type { Product } from "@/lib/data";
 import { ProductCard } from "../ProductCard";
 
-// Yana kaydırmalı en çok satan kombiler: kaydırma çubuğu yerine ilerleme çizgisi ve oklar
-export function BestSellers({ products }: { products: Product[] }) {
+// Yana kaydırmalı en çok satanlar (mevsimin öne çıkan kategorisi): kaydırma çubuğu yerine ilerleme çizgisi ve oklar
+export function BestSellers({ products, eyebrow, title, href, linkLabel }: { products: Product[]; eyebrow: string; title: string; href: string; linkLabel: string }) {
   const track = useRef<HTMLDivElement>(null);
   const { scrollXProgress } = useScroll({ container: track });
   const progress = useSpring(scrollXProgress, { stiffness: 180, damping: 30 });
@@ -24,11 +24,11 @@ export function BestSellers({ products }: { products: Product[] }) {
     <section className="overflow-hidden pb-14 pt-20 lg:pb-16 lg:pt-28">
       <div className="mx-auto mb-10 flex w-full max-w-7xl flex-wrap items-end justify-between gap-6 px-4 md:px-6">
         <div>
-          <p className="mb-3 text-[11px] font-semibold uppercase tracking-[0.25em] text-accent">Kombi</p>
-          <h2 className="text-3xl font-light tracking-tight md:text-5xl">En Çok Satan Kombiler</h2>
+          <p className="mb-3 text-[11px] font-semibold uppercase tracking-[0.25em] text-accent">{eyebrow}</p>
+          <h2 className="text-3xl font-light tracking-tight md:text-5xl">{title}</h2>
         </div>
-        <Link href="/kombi" className="border-b border-primary pb-1 text-xs font-bold uppercase tracking-[0.2em] text-primary transition-colors hover:border-accent hover:text-accent">
-          Tüm kombiler
+        <Link href={href} className="border-b border-primary pb-1 text-xs font-bold uppercase tracking-[0.2em] text-primary transition-colors hover:border-accent hover:text-accent">
+          {linkLabel}
         </Link>
       </div>
 

@@ -40,3 +40,16 @@ export async function unsubscribe(token: string) {
     "UPDATE subscribers SET active = 0, unsubscribed_at = NOW() WHERE token = ? AND active = 1", [token]);
   return res.affectedRows > 0;
 }
+
+// İletişim tercihleri sayfası: üyenin e-posta ile kampanya izni (bülten aboneliği)
+export async function isSubscribed(email: string) {
+  await ensureSubscribers();
+  const [rows] = await db().query<RowDataPacket[]>("SELECT active FROM subscribers WHERE email = ?", [email]);
+  return !!rows[0]?.active;
+}
+
+export async function setSubscribed(email: string, on: boolean, ip: string) {
+  if (on) return void (await subscribe(email, ip));
+  await ensureSubscribers();
+  await db().query("UPDATE subscribers SET active = 0, unsubscribed_at = NOW() WHERE email = ? AND active = 1", [email]);
+}

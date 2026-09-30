@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<title>GAZ-A Mühendislik — Yapılacaklar</title>
+<style>
+  @page { size: A4; margin: 16mm 15mm 16mm; }
+  * { box-sizing: border-box; }
+  body { font-family: "Segoe UI", Arial, sans-serif; color: #1f2937; font-size: 10.5pt; line-height: 1.5; margin: 0; }
+  header { border-bottom: 3px solid #1a3e85; padding-bottom: 10px; margin-bottom: 18px; display: flex; justify-content: space-between; align-items: flex-end; }
+  h1 { font-size: 20pt; margin: 0; color: #1a3e85; letter-spacing: -0.3px; }
+  .meta { color: #64748b; font-size: 9pt; text-align: right; }
+  h2 { font-size: 13pt; color: #fff; background: #1a3e85; padding: 6px 10px; border-radius: 4px; margin: 22px 0 10px; break-after: avoid; }
+  h3 { font-size: 11pt; color: #1a3e85; margin: 14px 0 4px; break-after: avoid; }
+  ul { margin: 4px 0 8px; padding-left: 0; list-style: none; }
+  li { position: relative; padding-left: 22px; margin: 4px 0; break-inside: avoid; }
+  li::before { content: ""; position: absolute; left: 2px; top: 4px; width: 11px; height: 11px; border: 1.5px solid #1a3e85; border-radius: 2px; }
+  li li::before { border-color: #94a3b8; width: 9px; height: 9px; top: 5px; }
+  li ul { margin: 2px 0 4px; }
+  .big { border: 1px solid #e2e8f0; border-left: 4px solid #1a3e85; border-radius: 4px; padding: 8px 12px 6px; margin: 10px 0; break-inside: avoid; }
+  .big h3 { margin-top: 0; }
+  .note { color: #64748b; font-size: 9.5pt; }
+  .done { background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 4px; padding: 8px 12px; margin-top: 8px; }
+  .done li::before { content: "✓"; border: 0; color: #15803d; font-weight: 700; top: 0; left: 3px; width: auto; height: auto; }
+  .tag { display: inline-block; font-size: 8pt; font-weight: 700; padding: 0 6px; border-radius: 3px; background: #fef3c7; color: #92400e; margin-left: 4px; vertical-align: 1px; }
+  .order { background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 4px; padding: 10px 12px; margin-top: 18px; break-inside: avoid; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Yapılacaklar Listesi</h1>
+  <div class="meta">GAZ-A Mühendislik · Web, Mobil, Admin<br>Güncelleme: 30 Eylül 2026</div>
+</header>
+
+<h2>1. Büyük işler</h2>
+
+<div class="big">
+  <h3>Ödeme sistemi</h3>
+  <p class="note">PayTR başvurusu reddedildi; başka bir lisanslı ödeme kuruluşu seçilmeli (iyzico, Param, Sipay, Moka vb.).</p>
+  <ul>
+    <li>Ödeme kuruluşu seçimi ve başvuru (şu an WhatsApp + havale / EFT ile çalışılıyor)</li>
+    <li>Ödeme ekranını bağlamak; ödeme sonucunu otomatik almak (ödendi / başarısız)</li>
+    <li>Siparişin otomatik "Ödendi" durumuna geçmesi, taksit seçeneklerinin gösterilmesi</li>
+    <li>İade / iptalde ödeme kuruluşuna iade isteği</li>
+        <li>Mobil uygulamaya kartla ödeme ekranı</li>
+  </ul>
+</div>
+
+<div class="big">
+  <h3>Fatura (e-Arşiv / e-Fatura)</h3>
+  <ul>
+    <li>Entegratör bağlantısı (Paraşüt, Logo, Uyumsoft, Sovos vb.)</li>
+    <li>Ödenen siparişte faturanın otomatik kesilmesi, PDF'in müşteriye e-postayla gitmesi</li>
+    <li>Hesabım → Siparişlerim'de "Faturayı indir"</li>
+    <li>Ödeme ekranına bireysel / kurumsal seçimi (vergi dairesi, vergi no, unvan)</li>
+    <li>Admin'de fatura durumu ve yeniden kesme</li>
+  </ul>
+</div>
+
+<div class="big">
+  <h3>SMS</h3>
+  <ul>
+    <li>SMS firması bağlantısı (Netgsm, İletimerkezi, Mutlucell vb.)</li>
+    <li>Sipariş alındı, kargoya verildi (takip no), teslim edildi, bilgi talebi SMS'leri</li>
+    <li>Kampanya SMS'leri için İYS kaydı ve izin yönetimi <span class="tag">yasal zorunluluk</span></li>
+    <li>İsteğe bağlı: telefon doğrulama (OTP)</li>
+  </ul>
+</div>
+
+<div class="big">
+  <h3>Kargo entegrasyonu</h3>
+  <ul>
+    <li>Aras / Yurtiçi / MNG ile gönderi oluşturma, takip numarası ve takip linki</li>
+    <li>Müşteriye e-posta / SMS ile takip bilgisi</li>
+  </ul>
+  <p class="note">Sabit kargo ücretleri tamamlandı (aşağıda "Tamamlananlar").</p>
+</div>
+
+<div class="big">
+  <h3>Mobil uygulamanın mağazalarda yayını</h3>
+  <ul>
+    <li>EAS Build ile Android (AAB) ve iOS kurulum dosyaları</li>
+    <li>Mağaza bilgilerinin App Store Connect ve Play Console'a girilmesi (metinler ve görseller <b>magaza/</b> klasöründe hazır)</li>
+    <li>İnceleme ekibi için demo hesabı açılması</li>
+  </ul>
+</div>
+
+<div class="big">
+  <h3>Mobil bildirimlerin canlıya alınması</h3>
+  <ul>
+    <li>Firebase projesi açılması; Android için FCM anahtarının EAS'a yüklenmesi; iOS için Apple push anahtarı (EAS build sırasında otomatik)</li>
+    <li>Android'de gerçek telefonda test bildirimi (Expo Go bildirim almaz; build gerekir)</li>
+  </ul>
+</div>
+
+<h2>2. Web — küçük işler</h2>
+<ul>
+  <li>"Şifremi unuttum": e-postayla şifre sıfırlama</li>
+  <li>Üyelik formunda bülten kutusu önceden işaretli; işaretsiz olmalı <span class="tag">KVKK / İYS</span></li>
+  <li>Ürün detay sayfasında "Sepete Ekle" butonunun da − adet + olması (kartlarda yapıldı)</li>
+  <li>Stok adedi takibi (satıldıkça düşme); şu an sadece var / yok</li>
+  <li>Ürün karşılaştırma ve son bakılan ürünler (isteğe bağlı)</li>
+  <li>Google Search Console'a <b>sitemap.xml</b> eklenmesi; Analytics (çerez onayına bağlı)</li>
+  <li>Ürünlere yapılandırılmış veri (Google'da fiyat ve yıldız)</li>
+  <li>Özel 404 / 500 sayfaları</li>
+  <li>İletişim sayfasına çalışma saatleri</li>
+</ul>
+
+<h2>3. Mobil — küçük işler</h2>
+<ul>
+  <li>Uygulama içinden sipariş ve ödeme (şu an WhatsApp ile)
+    <ul><li>WhatsApp siparişlerinde kupon kullanımı sayılmıyor; uygulama içi siparişe geçince sayılacak</li></ul>
+  </li>
+  <li>"Şifremi unuttum" ekranı</li>
+  <li>Profil düzenleme (ad, telefon, adres, şifre)</li>
+  <li>Giriş yapanın favorilerinin web ile ortak olması (şu an sadece telefonda)</li>
+  <li>Web ile sepet senkronu (isteğe bağlı)</li>
+  <li>Paylaşılan web linklerinin uygulamada açılması (deep link) ve ürün detayda "Paylaş"</li>
+  <li>İnternet yokken uyarı ekranı</li>
+  <li>Sürüm kontrolü: eski sürüme "Güncelleyin" uyarısı</li>
+  <li>İletişim haritasının telefonda doğrulanması</li>
+</ul>
+
+<h2>4. Admin paneli — küçük işler</h2>
+<ul>
+  <li>Raporlar: günlük / aylık satış, en çok satanlar, kupon kullanımları, grafik, Excel'e aktarma</li>
+  <li>Müşteriler sayfası (üyeler ve siparişleri)</li>
+  <li>Birden fazla admin ve yetki seviyeleri</li>
+  <li>Excel ile toplu fiyat / stok güncelleme, toplu yayından kaldırma</li>
+  <li>WhatsApp'tan gelen siparişlerin admin'e elle sipariş olarak girilebilmesi</li>
+  <li>İşlem kaydı: hangi admin neyi değiştirdi</li>
+</ul>
+
+<h2>5. Güvenlik ve bakım</h2>
+<ul>
+  <li>Sohbette paylaşılan .env şifrelerinin yenilenmesi (veritabanı, SMTP, CallMeBot, ADMIN_SESSION_SECRET)</li>
+  <li>Veritabanı ve görsellerin otomatik yedeklenmesi (cPanel yedek ayarı)</li>
+  <li>Admin girişine iki adımlı doğrulama</li>
+  <li>CallMeBot yerine resmi WhatsApp Business API'ye geçiş (uzun vadede)</li>
+</ul>
+
+<div class="done">
+  <h3 style="margin-top:0;color:#15803d">Tamamlananlar</h3>
+  <ul>
+    <li>İndirim kuponları: admin'de tanımlama (yüzde / tutar, en az sepet tutarı, kullanım sınırı, tarih aralığı)</li>
+    <li>Web ve mobil sepette kupon girme, sipariş özeti, sözleşme onayı</li>
+    <li>Kategori bazında sabit kargo ücretleri, varsayılan ücret ve ücretsiz kargo sınırı (admin'den)</li>
+    <li>Siparişte ara toplam / kargo / indirim kaydı; e-postalarda ve sipariş detayında gösterim</li>
+    <li>Footer'da kart logoları (Visa, Mastercard, Troy); PayTR ifadeleri siteden kaldırıldı</li>
+    <li>Web sepetinde ürün görselleri</li>
+    <li>Geçici ödeme: web ve mobilde WhatsApp ile sipariş + Kuveyt Türk IBAN (havale / EFT), "kartla ödeme yakında" notu</li>
+    <li>Bozulan yakın çekim (hover) görselleri orijinaline döndürüldü</li>
+    <li>Mobil push bildirim altyapısı; admin → Bildirim Gönder (görselli / görselsiz, hedef sayfa, tüm kullanıcılar / üyeler)</li>
+    <li>İletişim Tercihleri sayfası (web + mobil): e-posta ve push izinleri</li>
+    <li>Sipariş yönetimi: ödeme alındı / hazırlanıyor / kargoya verildi (takip no) / teslim; müşteriye e-posta + push</li>
+    <li>Sipariş bildirimleri siparis@ ve destek@ adreslerine</li>
+    <li>iPhone'da bildirim testi başarılı (Expo Go)</li>
+    <li>Hesap silme: web (/hesap-silme, herkese açık) ve mobil (Hesabım → Ayarlar → Hesabımı sil); gizlilik politikasına uygulama, bildirim ve hesap silme maddeleri</li>
+    <li>Uygulama ikonu kontrolü; Android ikonu güvenli alana küçültüldü, temalı (mono) ikon düzeltildi</li>
+    <li>Mağaza metinleri, veri güvenliği / gizlilik form cevapları, ekran görüntüleri (iPhone + Android), Play ikonu ve tanıtım görseli; eas.json</li>
+    <li>Header tek satırda İletişim / Bilgi Al ikonları kaldırıldı; "Çalıştığımız Markalar" yan yazısı kaldırıldı</li>
+    <li>EAS proje bağlantısı (Expo hesabı gazamuh, proje kimliği app.json'da)</li>
+    <li>Mevsime göre kategori sıralaması (header, footer, ana sayfa bölümleri, mobil ana sayfa) ve admin → Mevsim Sıralaması</li>
+    <li>Ürün görsellerinin arka planı temizlendi, açık marka mavisi zemin (811 görsel; iç aksam / ortam fotoğrafları orijinal)</li>
+  </ul>
+</div>
+
+<div class="order">
+  <b>Önerilen sıra:</b> Ödeme sistemi → Fatura → Kargo + SMS → Mobilde sipariş ve ödeme → Mağazada yayın. Küçük işler bunların arasına serpiştirilebilir.
+</div>
+</body>
+</html>

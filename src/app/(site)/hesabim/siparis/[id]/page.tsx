@@ -5,7 +5,9 @@ import type { RowDataPacket } from "mysql2";
 import { Breadcrumb } from "@/components/Breadcrumb";
 import { requireUser } from "@/lib/customer";
 import { db } from "@/lib/db";
-import { REVIEW_STATUSES, STATUS, isStatus, orderNo } from "@/lib/orders";
+import { REVIEW_STATUSES, STATUS, isStatus, orderNo, trackingUrl } from "@/lib/orders";
+import { BankCard } from "@/components/BankCard";
+import { OrderTotals } from "@/components/OrderTotals";
 import { tl } from "@/lib/utils";
 
 export const metadata: Metadata = { title: "Sipariş Detayı | GAZ-A Mühendislik" };
@@ -53,7 +55,25 @@ export default async function OrderDetail({ params }: { params: Promise<{ id: st
           </li>
         ))}
       </ul>
+      <OrderTotals o={o} />
       <p className="mt-2 flex justify-between border-t border-border pt-4 text-lg font-extrabold"><span>Toplam</span><span className="text-primary">{tl(Number(o.total))}</span></p>
+
+      {o.status === "pending" && (
+        <section className="mt-10">
+          <h2 className="mb-1 font-bold">Ödeme bekleniyor</h2>
+          <p className="mb-4 text-sm text-muted">Tutarı aşağıdaki hesaba havale / EFT ile gönderin; açıklamaya sipariş numaranızı yazın.</p>
+          <BankCard amount={tl(Number(o.total))} reference={orderNo(id)} />
+        </section>
+      )}
+      {o.tracking_no && (
+        <section className="mt-10 rounded-[4px] border border-border p-6 text-sm">
+          <h2 className="mb-2 font-bold">Kargo takibi</h2>
+          <p>{o.cargo_company} · <strong>{o.tracking_no}</strong></p>
+          {trackingUrl(o.cargo_company, o.tracking_no) && (
+            <a href={trackingUrl(o.cargo_company, o.tracking_no)!} target="_blank" rel="noopener noreferrer" className="mt-3 inline-block rounded-[4px] bg-primary px-5 py-2.5 text-sm font-semibold text-white">Kargom nerede?</a>
+          )}
+        </section>
+      )}
 
       <section className="mt-10 rounded-[4px] bg-surface p-6 text-sm">
         <h2 className="mb-3 font-bold">Teslimat Bilgileri</h2>
