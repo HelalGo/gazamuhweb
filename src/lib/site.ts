@@ -31,6 +31,12 @@ export const mailboxes = {
   noreply: "noreply@gazamuhendislik.com.tr",
 };
 
+// Mobil uygulama mağaza bağlantıları (App Store Apple ID: 6817845551, paket: com.gaza.muhendislik)
+export const appLinks = {
+  ios: "https://apps.apple.com/tr/app/id6817845551",
+  android: "https://play.google.com/store/apps/details?id=com.gaza.muhendislik",
+};
+
 export const contact = {
   phone: "0533 194 49 52",
   email: "destek@gazamuhendislik.com.tr",

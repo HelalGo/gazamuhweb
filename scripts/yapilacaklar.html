@@ -88,8 +88,7 @@
 <div class="big">
   <h3>Mobil bildirimlerin canlıya alınması</h3>
   <ul>
-    <li>Firebase projesi açılması; Android için FCM anahtarının EAS'a yüklenmesi; iOS için Apple push anahtarı (EAS build sırasında otomatik)</li>
-    <li>Android'de gerçek telefonda test bildirimi (Expo Go bildirim almaz; build gerekir)</li>
+    <li>iOS için Apple push anahtarı (EAS iOS build sırasında otomatik)</li>
   </ul>
 </div>
 
@@ -155,9 +154,11 @@
     <li>Sipariş yönetimi: ödeme alındı / hazırlanıyor / kargoya verildi (takip no) / teslim; müşteriye e-posta + push</li>
     <li>Sipariş bildirimleri siparis@ ve destek@ adreslerine</li>
     <li>iPhone'da bildirim testi başarılı (Expo Go)</li>
+    <li>Firebase + FCM anahtarı EAS'a yüklendi; Android deneme build'inde bildirim testi başarılı</li>
     <li>Hesap silme: web (/hesap-silme, herkese açık) ve mobil (Hesabım → Ayarlar → Hesabımı sil); gizlilik politikasına uygulama, bildirim ve hesap silme maddeleri</li>
     <li>Uygulama ikonu kontrolü; Android ikonu güvenli alana küçültüldü, temalı (mono) ikon düzeltildi</li>
     <li>Mağaza metinleri, veri güvenliği / gizlilik form cevapları, ekran görüntüleri (iPhone + Android), Play ikonu ve tanıtım görseli; eas.json</li>
+    <li>Sitede footer üstüne "Uygulamamızı indirin" bölümü (App Store / Google Play bağlantıları; mağazalar onaylayınca çalışır)</li>
     <li>Header tek satırda İletişim / Bilgi Al ikonları kaldırıldı; "Çalıştığımız Markalar" yan yazısı kaldırıldı</li>
     <li>EAS proje bağlantısı (Expo hesabı gazamuh, proje kimliği app.json'da)</li>
     <li>Mevsime göre kategori sıralaması (header, footer, ana sayfa bölümleri, mobil ana sayfa) ve admin → Mevsim Sıralaması</li>

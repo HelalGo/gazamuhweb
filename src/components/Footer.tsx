@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { LockKeyhole, Mail, MapPin, Phone } from "lucide-react";
 import { company, contact, footerLinks, igdas } from "@/lib/site";
+import { AppDownload } from "./AppDownload";
 import { IgdasBadge } from "./IgdasBadge";
 import { Newsletter } from "./Newsletter";
 import { SocialIcons } from "./SocialIcons";
@@ -25,7 +26,9 @@ const info = [
 // cats: mevsime göre sıralı kategori bağlantıları (lib/season)
 export function Footer({ cats }: { cats: { label: string; href: string }[] }) {
   return (
-    <footer className="mt-24 bg-surface">
+    <>
+    <AppDownload />
+    <footer className="mt-16 bg-surface">
       <Newsletter />
       <div className="mx-auto grid w-full max-w-7xl gap-10 px-4 py-14 sm:grid-cols-2 md:px-6 lg:grid-cols-5">
         <div className="lg:col-span-2">
@@ -114,5 +117,6 @@ export function Footer({ cats }: { cats: { label: string; href: string }[] }) {
         </div>
       </div>
     </footer>
+    </>
   );
 }
