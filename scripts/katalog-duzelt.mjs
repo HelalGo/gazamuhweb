@@ -12,6 +12,12 @@
 //     (katalog-arkaplan/ + katalog-arkaplan.json). Yeni dosyalar yeni adla gelir; tarayıcı önbelleği eskisini göstermez.
 //  9) 8. adımda kesilince bozulan yakın çekimleri (ürünün fotoğraf kenarına taştığı görseller) orijinaline döndürür
 //     (katalog-arkaplan-geri.json: yeni ad → orijinal ad).
+// 10) Tüm aktif ürünlerin fiyatını düşürür (5.000 TL ve üzeri: 200–300 TL; ucuz ürünlerde orantılı daha az).
+//     Yeni fiyat 50'nin katı ya da …90 ile biten "düzgün" bir sayıdır. Eski fiyatlar geri almak için
+//     UPLOAD_DIR/.fiyat-indirim-1.json dosyasına yedeklenir; üstü çizili fiyat (old_price) olduğu gibi kalır.
+// 11) Üstü çizili fiyatı (old_price) satış fiyatından düşük ya da ona eşit girilmiş ürünlerde old_price'ı
+//     satış fiyatının ~%10 üstüne, yuvarlak bir değere çeker (indirim etiketi doğru görünsün). Eski değerler
+//     UPLOAD_DIR/.eski-fiyat-1.json dosyasına yedeklenir.
 // Her adım başarıyla bitince UPLOAD_DIR'e kendi işaret dosyasını bırakır ve bir daha çalışmaz;
 // böylece sonradan admin panelinden yapılan değişikliklere dokunulmaz.
 import { createHash, randomBytes } from "node:crypto";
@@ -29,6 +35,8 @@ const MARK_TEXT = ".aciklama-fiyat-1";
 const MARK_SKU = ".urun-kodu-1";
 const MARK_BG = ".arkaplan-1";
 const MARK_BG_BACK = ".arkaplan-geri-1";
+const MARK_PRICE = ".fiyat-indirim-1";
+const MARK_OLD = ".eski-fiyat-1";
 const exists = (p) => access(p).then(() => true, () => false);
 const bundledName = (url) => createHash("sha1").update(url).digest("hex").slice(0, 24) + ".webp";
 
@@ -55,7 +63,9 @@ export async function run() {
   const doSku = !(await exists(path.join(uploadDir, MARK_SKU)));
   const doBg = !(await exists(path.join(uploadDir, MARK_BG))) && (await exists(path.join(HERE, "katalog-arkaplan.json")));
   const doBgBack = !(await exists(path.join(uploadDir, MARK_BG_BACK))) && (await exists(path.join(HERE, "katalog-arkaplan-geri.json")));
-  if (!doCatalog && !doStock && !doGallery && !doClean && !doText && !doSku && !doBg && !doBgBack) return;
+  const doPrice = !(await exists(path.join(uploadDir, MARK_PRICE)));
+  const doOld = !(await exists(path.join(uploadDir, MARK_OLD)));
+  if (!doCatalog && !doStock && !doGallery && !doClean && !doText && !doSku && !doBg && !doBgBack && !doPrice && !doOld) return;
 
   const c = await mysql.createConnection({
     host: process.env.DB_HOST,
@@ -80,6 +90,8 @@ export async function run() {
     if (doSku) await skus(c, uploadDir);
     if (doBg) await backgrounds(c, uploadDir);
     if (doBgBack) await backgroundsBack(c, uploadDir);
+    if (doPrice) await priceCut(c, uploadDir);
+    if (doOld) await oldPriceFix(c, uploadDir);
   } finally {
     await c.end();
   }
@@ -279,6 +291,60 @@ async function backgroundsBack(c, uploadDir) {
   for (const [cover, gallery, id] of updates) await c.query("UPDATE products SET image_url = ?, images = ? WHERE id = ?", [cover, JSON.stringify(gallery), id]);
   console.log(`[katalog] ${updates.length} ürünün yakın çekim görselleri orijinaline döndürüldü (${copied} dosya)`);
   await writeFile(path.join(uploadDir, MARK_BG_BACK), new Date().toISOString());
+}
+
+// 10) Fiyat indirimi. Hedef indirim fiyata göre artar; sonuç hedefe en yakın "düzgün" fiyattır.
+export function cutPrice(price) {
+  const p = Math.round(Number(price));
+  if (!(p > 0)) return p;
+  const [min, max, target] =
+    p >= 50000 ? [200, 300, 300] :
+    p >= 20000 ? [200, 300, 250] :
+    p >= 5000 ? [200, 300, 200] :
+    p >= 3000 ? [100, 200, 150] :
+    [50, 150, Math.max(50, Math.round(p * 0.05))];
+  const nice = (n) => n % 50 === 0 || n % 100 === 90;
+  let best = p;
+  for (let cut = min; cut <= max; cut++) {
+    const n = p - cut;
+    if (nice(n) && (best === p || Math.abs(cut - target) < Math.abs(p - best - target))) best = n;
+  }
+  return best;
+}
+
+async function priceCut(c, uploadDir) {
+  const [rows] = await c.query("SELECT id, price FROM products WHERE active = 1 AND price > 0");
+  const backup = {};
+  let changed = 0, total = 0;
+  for (const r of rows) {
+    const next = cutPrice(r.price);
+    if (next === Math.round(Number(r.price))) continue;
+    backup[r.id] = Number(r.price);
+    total += Number(r.price) - next;
+    await c.query("UPDATE products SET price = ? WHERE id = ?", [next, r.id]);
+    changed++;
+  }
+  await writeFile(path.join(uploadDir, `${MARK_PRICE}.json`), JSON.stringify(backup));
+  console.log(`[katalog] ${changed} ürünün fiyatı düşürüldü (ortalama ${changed ? Math.round(total / changed) : 0} TL)`);
+  await writeFile(path.join(uploadDir, MARK_PRICE), new Date().toISOString());
+}
+
+// 11) Hatalı üstü çizili fiyat: satış fiyatı × 1,10, yukarı yuvarlanır (5.000 TL altı 100'e, üstü 500'e)
+export function listPrice(price) {
+  const step = price < 5000 ? 100 : 500;
+  return Math.ceil((Number(price) * 1.1) / step) * step;
+}
+
+async function oldPriceFix(c, uploadDir) {
+  const [rows] = await c.query("SELECT id, price, old_price FROM products WHERE old_price IS NOT NULL AND price > 0 AND old_price <= price");
+  const backup = {};
+  for (const r of rows) {
+    backup[r.id] = Number(r.old_price);
+    await c.query("UPDATE products SET old_price = ? WHERE id = ?", [listPrice(r.price), r.id]);
+  }
+  await writeFile(path.join(uploadDir, `${MARK_OLD}.json`), JSON.stringify(backup));
+  console.log(`[katalog] ${rows.length} ürünün hatalı üstü çizili fiyatı düzeltildi`);
+  await writeFile(path.join(uploadDir, MARK_OLD), new Date().toISOString());
 }
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
