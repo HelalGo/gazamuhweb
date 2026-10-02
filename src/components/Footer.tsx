@@ -20,6 +20,7 @@ const info = [
   ["MERSİS No", company.mersis],
   ["Ticaret Sicil No", company.tradeRegistryNo],
   ["Sicil Müdürlüğü", company.registry],
+  ["KEP Adresi", company.kep],
   ["İGDAŞ Yetki No", igdas.no],
 ];
 

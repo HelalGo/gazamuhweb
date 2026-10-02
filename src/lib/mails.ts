@@ -52,7 +52,7 @@ export function orderReceivedMail(o: OrderMailData) {
       h.button("Siparişimi görüntüle", `${SITE_URL}/hesabim/siparis/${o.id}`) +
       h.divider() +
       h.eyebrow("Sözleşme bilgileri") +
-      h.small(`Satıcı: ${esc(company.title)} · ${esc(contact.address)} · MERSİS: ${esc(company.mersis)} · ${esc(contact.phone)} · ${esc(contact.email)}`) +
+      h.small(`Satıcı: ${esc(company.title)} · ${esc(contact.address)} · MERSİS: ${esc(company.mersis)} · KEP: ${esc(company.kep)} · ${esc(contact.phone)} · ${esc(contact.email)}`) +
       h.small(`Siparişiniz <a href="${SITE_URL}/on-bilgilendirme-formu" style="color:#2099d0">Ön Bilgilendirme Formu</a> ve <a href="${SITE_URL}/mesafeli-satis-sozlesmesi" style="color:#2099d0">Mesafeli Satış Sözleşmesi</a> kapsamında onaylanmıştır. Ürünü teslim aldığınız tarihten itibaren ${policy.withdrawalDays} gün içinde herhangi bir gerekçe göstermeden cayma hakkınızı kullanabilirsiniz; ayrıntılar <a href="${SITE_URL}/iptal-ve-iade-kosullari" style="color:#2099d0">İptal ve İade Koşulları</a> sayfasındadır. Bu e-postayı sözleşme kaydınız olarak saklayabilirsiniz.`),
     TRANSACTIONAL
   );

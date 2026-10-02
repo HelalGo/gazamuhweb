@@ -37,6 +37,7 @@ export function Seller({ title = "Satıcı Bilgileri" }: { title?: string }) {
     ["Telefon", <a key="t" href={`tel:+9${contact.phone.replace(/\s/g, "")}`}>{contact.phone}</a>],
     ["E-posta", <a key="e" href={`mailto:${contact.email}`}>{contact.email}</a>],
     ["Vergi dairesi / No", `${company.taxOffice} / ${company.taxNo}`],
+    ["KEP adresi", company.kep],
     ["MERSİS No", company.mersis],
     ["Ticaret sicil", `${company.registry} – ${company.tradeRegistryNo}`],
   ];
@@ -173,7 +174,7 @@ export const legal: Record<LegalSlug, { title: string; description: string; body
           sorumlusu sıfatıyla, kişisel verilerinizi aşağıda açıklanan amaçlar ve hukuki sebepler çerçevesinde işlemekteyiz.
         </p>
         <h2>1. Veri sorumlusu</h2>
-        <p>{company.title} – {contact.address} – {contact.email}</p>
+        <p>{company.title} – {contact.address} – {contact.email} – KEP: {company.kep}</p>
         <h2>2. İşlenen kişisel veriler</h2>
         <ul>
           <li><strong>Kimlik:</strong> Ad, soyad; fatura için gerektiğinde T.C. kimlik numarası.</li>
@@ -230,7 +231,8 @@ export const legal: Record<LegalSlug, { title: string; description: string; body
         <p>
           Haklarınıza ilişkin taleplerinizi, Veri Sorumlusuna Başvuru Usul ve Esasları Hakkında Tebliğ&apos;e uygun olarak; kimliğinizi
           tespit edici bilgilerle birlikte yazılı olarak <strong>{contact.address}</strong> adresine iletebilir ya da sistemimizde kayıtlı
-          e-posta adresinizden <a href={`mailto:${contact.email}`}>{contact.email}</a> adresine gönderebilirsiniz. Başvurunuz en geç
+          e-posta adresinizden <a href={`mailto:${contact.email}`}>{contact.email}</a> adresine ya da kayıtlı elektronik posta (KEP) ile{" "}
+          <strong>{company.kep}</strong> adresine gönderebilirsiniz. Başvurunuz en geç
           30 gün içinde ücretsiz olarak sonuçlandırılır.
         </p>
       </>

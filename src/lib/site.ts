@@ -85,4 +85,5 @@ export const company = {
   mersis: "0389151390000001",
   tradeRegistryNo: "237673-5",
   registry: "İstanbul Ticaret Sicili Müdürlüğü",
+  kep: "gazamuhendislik@hs01.kep.tr",
 };
