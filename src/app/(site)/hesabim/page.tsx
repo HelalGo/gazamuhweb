@@ -8,7 +8,7 @@ import { STATUS, isStatus, orderNo } from "@/lib/orders";
 import { tl } from "@/lib/utils";
 import { logout } from "../actions";
 
-export const metadata: Metadata = { title: "Hesabım | GAZ-A Mühendislik" };
+export const metadata: Metadata = { title: "Hesabım | GAZ-A Mühendislik", robots: { index: false, follow: true } };
 export const dynamic = "force-dynamic";
 
 export default async function Account() {

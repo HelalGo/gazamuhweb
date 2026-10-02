@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { JsonLd } from "@/components/JsonLd";
+import { articleLd, breadcrumbLd } from "@/lib/seo";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Clock, MessageCircle, Phone } from "lucide-react";
@@ -18,7 +20,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return {
     title: `${p.title} | GAZ-A Mühendislik Blog`,
     description: p.excerpt,
-    openGraph: { title: p.title, description: p.excerpt, type: "article", images: p.cover ? [p.cover] : undefined },
+    alternates: { canonical: `/blog/${p.slug}` },
+    openGraph: { title: p.title, description: p.excerpt ?? undefined, type: "article", url: `/blog/${p.slug}`, publishedTime: p.publishedAt.toISOString(), images: p.cover ? [p.cover] : undefined },
   };
 }
 
@@ -30,6 +33,7 @@ export default async function BlogPostPage({ params }: Props) {
 
   return (
     <div className="mx-auto w-full max-w-7xl px-4 pb-8 pt-40 md:px-6">
+      <JsonLd data={[articleLd(post), breadcrumbLd([{ name: "Ana Sayfa", url: "/" }, { name: "Blog", url: "/blog" }, { name: post.title, url: `/blog/${post.slug}` }])]} />
       <Breadcrumb crumbs={[{ label: "Ana Sayfa", href: "/" }, { label: "Blog", href: "/blog" }, { label: post.title }]} />
 
       <article className="mx-auto mt-10 max-w-3xl">

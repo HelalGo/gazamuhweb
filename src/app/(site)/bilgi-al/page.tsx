@@ -9,7 +9,11 @@ import { whatsappUrl } from "@/lib/home";
 import { contact } from "@/lib/site";
 import { tl } from "@/lib/utils";
 
-export const metadata: Metadata = { title: "Bilgi Al | GAZ-A Mühendislik" };
+export const metadata: Metadata = {
+  title: "Bilgi ve Teklif Al | Kombi, Klima Keşif ve Montaj | GAZ-A Mühendislik",
+  description: "Kombi, klima, ısı pompası ve radyatör için ücretsiz bilgi ve fiyat teklifi alın. Keşif, doğalgaz projesi, montaj ve servis İstanbul'da.",
+  alternates: { canonical: "/bilgi-al" },
+};
 export const dynamic = "force-dynamic";
 
 export default async function InfoPage({ searchParams }: { searchParams: Promise<{ urun?: string }> }) {

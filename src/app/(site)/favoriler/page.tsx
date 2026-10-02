@@ -5,7 +5,7 @@ import { ProductCard } from "@/components/ProductCard";
 import { getFavoriteIds, requireUser } from "@/lib/customer";
 import { getProducts } from "@/lib/products";
 
-export const metadata: Metadata = { title: "Favorilerim | GAZ-A Mühendislik" };
+export const metadata: Metadata = { title: "Favorilerim | GAZ-A Mühendislik", robots: { index: false, follow: true } };
 export const dynamic = "force-dynamic";
 
 export default async function Favorites() {

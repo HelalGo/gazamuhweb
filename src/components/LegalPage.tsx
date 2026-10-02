@@ -6,6 +6,7 @@ import { Breadcrumb } from "./Breadcrumb";
 export const legalMeta = (slug: LegalSlug): Metadata => ({
   title: `${legal[slug].title} | GAZ-A Mühendislik`,
   description: legal[slug].description,
+  alternates: { canonical: `/${slug}` },
 });
 
 // Kurumsal ve yasal sayfaların ortak düzeni: solda sayfa listesi, sağda metin

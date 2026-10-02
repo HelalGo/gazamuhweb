@@ -6,12 +6,14 @@ import { AddToCart } from "@/components/AddToCart";
 import { Breadcrumb } from "@/components/Breadcrumb";
 import { Description } from "@/components/Description";
 import { FavoriteButton } from "@/components/FavoriteButton";
+import { JsonLd } from "@/components/JsonLd";
 import { ProductGallery } from "@/components/ProductGallery";
 import { ReviewForm } from "@/components/ReviewForm";
 import { Stars } from "@/components/Stars";
 import { dbConfigured, getUser } from "@/lib/customer";
 import { getProduct } from "@/lib/products";
 import { getReviews, reviewEligibility, type Eligibility } from "@/lib/reviews";
+import { breadcrumbLd, productLd, summary as clip } from "@/lib/seo";
 import { contact, igdas } from "@/lib/site";
 import { slugify } from "@/lib/slug";
 import { tl } from "@/lib/utils";
@@ -22,7 +24,17 @@ type Props = { params: Promise<{ slug: string }>; searchParams: Promise<{ yorum?
 
 export async function generateMetadata({ params }: Pick<Props, "params">): Promise<Metadata> {
   const p = await getProduct((await params).slug);
-  return { title: p ? `${p.name} | GAZ-A Mühendislik` : "Ürün bulunamadı" };
+  if (!p) return { title: "Ürün bulunamadı", robots: { index: false } };
+  const price = p.price > 0 ? `${tl(p.price)} · ` : "";
+  const name = p.name.toLocaleLowerCase("tr").startsWith(p.brand.toLocaleLowerCase("tr")) ? p.name : `${p.brand} ${p.name}`;
+  const description = clip(`${price}${name}. ${p.description}`);
+  const url = `/urun/${p.slug}`;
+  return {
+    title: `${p.name} | GAZ-A Mühendislik`,
+    description,
+    alternates: { canonical: url },
+    openGraph: { type: "website", url, title: p.name, description, images: p.imageUrl ? [{ url: p.imageUrl, alt: p.name }] : ["/brand/og.jpg"] },
+  };
 }
 
 export default async function ProductPage({ params, searchParams }: Props) {
@@ -38,6 +50,10 @@ export default async function ProductPage({ params, searchParams }: Props) {
 
   return (
     <div className="mx-auto w-full max-w-7xl px-4 pb-8 pt-40 md:px-6">
+      <JsonLd data={[
+        productLd(p, summary),
+        breadcrumbLd([{ name: "Ana Sayfa", url: "/" }, { name: p.category, url: `/${slugify(p.category)}` }, { name: p.name, url: `/urun/${p.slug}` }]),
+      ]} />
       <Breadcrumb crumbs={[{ label: "Ana Sayfa", href: "/" }, { label: p.category, href: `/${slugify(p.category)}` }, { label: p.name }]} />
 
       <div className="mt-8 grid gap-10 lg:grid-cols-2">

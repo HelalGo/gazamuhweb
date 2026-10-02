@@ -3,7 +3,7 @@ import { Breadcrumb } from "@/components/Breadcrumb";
 import { CheckoutForm } from "@/components/CheckoutForm";
 import { requireUser } from "@/lib/customer";
 
-export const metadata: Metadata = { title: "Siparişi Tamamla | GAZ-A Mühendislik" };
+export const metadata: Metadata = { title: "Siparişi Tamamla | GAZ-A Mühendislik", robots: { index: false, follow: true } };
 export const dynamic = "force-dynamic";
 
 export default async function CheckoutPage() {

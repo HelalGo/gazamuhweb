@@ -14,6 +14,7 @@ export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
   title: "Site Haritası | GAZ-A Mühendislik",
   description: "GAZ-A Mühendislik sitesindeki tüm kategoriler, markalar, ürünler, blog yazıları, kurumsal sayfalar ve sözleşmeler tek sayfada.",
+  alternates: { canonical: "/site-haritasi" },
 };
 
 type L = { label: string; href: string };

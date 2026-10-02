@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Breadcrumb } from "@/components/Breadcrumb";
 import { CartView } from "@/components/CartView";
 
-export const metadata: Metadata = { title: "Sepetim | GAZ-A Mühendislik" };
+export const metadata: Metadata = { title: "Sepetim | GAZ-A Mühendislik", robots: { index: false, follow: true } };
 
 export default function CartPage() {
   return (

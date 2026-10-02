@@ -9,7 +9,12 @@ type SP = Promise<{ marka?: string; q?: string }>;
 
 export async function generateMetadata({ searchParams }: { searchParams: SP }): Promise<Metadata> {
   const { q } = await searchParams;
-  return { title: q ? `"${q}" araması | GAZ-A Mühendislik` : "Tüm Ürünler | GAZ-A Mühendislik" };
+  if (q) return { title: `"${q}" araması | GAZ-A Mühendislik`, robots: { index: false, follow: true } };
+  return {
+    title: "Tüm Ürünler | Kombi, Klima, Isı Pompası, Radyatör | GAZ-A Mühendislik",
+    description: "Kombi, klima, ısı pompası, radyatör, şofben ve termostat modellerinin tamamı ve güncel fiyatları. Faturalı, garantili ürün; montaj ve servis İstanbul'da.",
+    alternates: { canonical: "/urunler" },
+  };
 }
 
 export default async function AllProducts({ searchParams }: { searchParams: SP }) {

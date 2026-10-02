@@ -9,6 +9,7 @@ import { contact } from "@/lib/site";
 export const metadata: Metadata = {
   title: "Hesap Silme | GAZ-A Mühendislik",
   description: "GAZ-A Mühendislik web sitesi ve mobil uygulama hesabınızı ve kişisel verilerinizi nasıl silebileceğiniz.",
+  alternates: { canonical: "/hesap-silme" },
 };
 export const dynamic = "force-dynamic";
 

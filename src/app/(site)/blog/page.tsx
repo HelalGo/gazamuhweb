@@ -9,6 +9,7 @@ export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
   title: "Blog | GAZ-A Mühendislik",
   description: "Kombi, klima, ısı pompası ve doğalgaz tesisatı üzerine rehberler, bakım önerileri ve sektörden haberler.",
+  alternates: { canonical: "/blog" },
 };
 
 export default async function BlogIndex({ searchParams }: { searchParams: Promise<{ kategori?: string }> }) {

@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { BestSellers } from "@/components/home/BestSellers";
 import { Campaigns } from "@/components/home/Campaigns";
 import { CategoryRow } from "@/components/home/CategoryRow";
@@ -12,6 +13,7 @@ import { getSeason, sortBySeason } from "@/lib/season";
 import { slugify } from "@/lib/slug";
 
 export const dynamic = "force-dynamic";
+export const metadata: Metadata = { alternates: { canonical: "/" } };
 
 const discount = (p: Product) => (p.oldPrice && p.oldPrice > p.price ? 1 - p.price / p.oldPrice : 0);
 

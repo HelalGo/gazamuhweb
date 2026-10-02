@@ -1,11 +1,13 @@
 import { CookieConsent } from "@/components/CookieConsent";
 import { Footer } from "@/components/Footer";
 import { Header } from "@/components/Header";
+import { JsonLd } from "@/components/JsonLd";
 import { SiteProvider } from "@/components/SiteProvider";
 import { WhatsAppButton } from "@/components/WhatsAppButton";
 import { dbConfigured, getFavoriteIds, getUser } from "@/lib/customer";
 import { getMenu } from "@/lib/menu";
 import { seasonalNav } from "@/lib/season";
+import { siteLd } from "@/lib/seo";
 
 // Üye bilgisi ve veritabanı durumu her istekte okunur. Derleme anında sabitlenirse (ör. /sepet) sepetten
 // siparişe geçerken üyelik "kapalı" görünür ve "Siparişi Onayla" butonu kilitli kalır.
@@ -21,6 +23,7 @@ export default async function SiteLayout({ children }: { children: React.ReactNo
   const popular = [...menu.slice().sort((a, b) => b.count - a.count).slice(0, 4).map((m) => m.label), ...topBrands];
   return (
     <SiteProvider user={user ? { name: user.firstName } : null} favIds={favIds} enabled={dbConfigured()}>
+      <JsonLd data={siteLd()} />
       <Header menu={menu} popular={popular} />
       {children}
       <Footer cats={cats} />

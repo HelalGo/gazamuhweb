@@ -4,7 +4,7 @@ import { AuthForm } from "@/components/AuthForm";
 import { getUser } from "@/lib/customer";
 import { safeUrl } from "@/lib/layouts";
 
-export const metadata: Metadata = { title: "Giriş Yap | GAZ-A Mühendislik" };
+export const metadata: Metadata = { title: "Giriş Yap | GAZ-A Mühendislik", robots: { index: false, follow: true } };
 export const dynamic = "force-dynamic";
 
 export default async function LoginPage({ searchParams }: { searchParams: Promise<{ next?: string }> }) {
