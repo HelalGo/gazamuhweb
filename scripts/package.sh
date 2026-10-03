@@ -17,6 +17,9 @@ cp -R data/katalog-gorselleri "$ST/katalog-gorselleri"
 cp data/katalog-galeri.json "$ST/katalog-galeri.json"
 cp data/katalog-cikar.json "$ST/katalog-cikar.json"
 cp data/katalog-aciklama.json "$ST/katalog-aciklama.json"
+cp -R data/katalog-arkaplan "$ST/katalog-arkaplan"
+cp data/katalog-arkaplan.json "$ST/katalog-arkaplan.json"
+cp data/katalog-arkaplan-geri.json "$ST/katalog-arkaplan-geri.json"
 cat > "$ST/app.js" <<'JS'
 // Başlangıç dosyası: .env dosyasını okuyup Next.js sunucusunu çalıştırır.
 const path = require("path");
@@ -31,6 +34,11 @@ import("./katalog-duzelt.mjs").then((m) => m.run()).catch((e) => console.error("
 JS
 # .env pakete girmez: sunucudaki .env dosyası (veritabanı, e-posta, CallMeBot ayarları) olduğu gibi kalır
 rm -f "$OUT"
-(cd "$ST" && zip -rq "$OUT" . -x ".DS_Store")
+# zip yoksa (Windows Git Bash) Python ile paketlenir
+if command -v zip >/dev/null; then
+  (cd "$ST" && zip -rq "$OUT" . -x ".DS_Store")
+else
+  python -c "import shutil,sys; shutil.make_archive(sys.argv[1][:-4], 'zip', sys.argv[2])" "$(cygpath -w "$OUT" 2>/dev/null || echo "$OUT")" "$(cygpath -w "$ST" 2>/dev/null || echo "$ST")"
+fi
 rm -rf "$ST"
 echo "Hazır: $OUT ($(du -h "$OUT" | cut -f1))"

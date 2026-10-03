@@ -13,6 +13,8 @@ import { setPrefs } from "@/lib/push";
 import { quote } from "@/lib/pricing";
 import { reviewEligibility } from "@/lib/reviews";
 import { clientIp, tooMany } from "@/lib/ratelimit";
+import { ensureSiteColumn } from "@/lib/site-db";
+import { SITE_KEY } from "@/lib/sites";
 
 const clean = (f: FormData, k: string, max: number) => String(f.get(k) ?? "").trim().slice(0, max);
 const nextPath = (f: FormData) => {
@@ -123,6 +125,7 @@ export async function placeOrder(_: string | null, f: FormData): Promise<string 
   if (couponCode && q.couponError) return `İndirim kuponu: ${q.couponError}`;
 
   let orderId = 0;
+  await ensureSiteColumn("orders").catch((e) => console.error("[order site]", (e as Error).message));
   const conn = await db().getConnection();
   try {
     await conn.beginTransaction();
@@ -133,8 +136,8 @@ export async function placeOrder(_: string | null, f: FormData): Promise<string 
       if (!u.affectedRows) { await conn.rollback(); return "İndirim kuponu: Bu kuponun kullanım hakkı dolmuş."; }
     }
     const [res] = await conn.query<ResultSetHeader>(
-      "INSERT INTO orders (user_id, total, subtotal, discount, shipping, coupon_code, full_name, phone, email, city, address, note) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)",
-      [user.id, q.total, q.subtotal, q.discount, q.shipping, q.coupon?.code ?? null, fullName, phone, email, city, address, note || null]
+      "INSERT INTO orders (user_id, total, subtotal, discount, shipping, coupon_code, full_name, phone, email, city, address, note, site) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)",
+      [user.id, q.total, q.subtotal, q.discount, q.shipping, q.coupon?.code ?? null, fullName, phone, email, city, address, note || null, SITE_KEY]
     );
     await conn.query("INSERT INTO order_items (order_id, product_id, name, price, qty) VALUES ?", [q.lines.map((l) => [res.insertId, l.id, l.name, l.price, l.qty])]);
     await conn.commit();

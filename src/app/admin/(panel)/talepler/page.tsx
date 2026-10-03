@@ -4,7 +4,7 @@ import { Check, Mail, MessageCircle, Phone, RotateCcw, Trash2 } from "lucide-rea
 import { db } from "@/lib/db";
 import { deleteLead, toggleLead } from "../../orders-actions";
 import { ConfirmButton } from "../_client";
-import { Empty, PageHead, card, iconBtn } from "../_ui";
+import { Empty, PageHead, SiteTag, card, iconBtn } from "../_ui";
 
 export default async function Leads({ searchParams }: { searchParams: Promise<{ f?: string }> }) {
   const { f } = await searchParams;
@@ -33,7 +33,7 @@ export default async function Leads({ searchParams }: { searchParams: Promise<{ 
 
   return (
     <>
-      <PageHead title="Bilgi Talepleri" sub="Sitedeki “Bilgi Al” formundan gelen talepler. Müşteriye döndüğünüzde “Dönüş yapıldı” olarak işaretleyin." />
+      <PageHead title="Bilgi Talepleri" sub="İki sitedeki ve uygulamalardaki “Bilgi Al” formlarından gelen talepler; hangi markadan geldiği etikette yazar. Müşteriye döndüğünüzde “Dönüş yapıldı” olarak işaretleyin." />
       <div className="mb-4 flex gap-1 overflow-x-auto border-b border-border">
         {tab(undefined, "Bekleyen", counts.open)}
         {tab("done", "Dönüş yapılan", counts.done)}
@@ -49,6 +49,7 @@ export default async function Leads({ searchParams }: { searchParams: Promise<{ 
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
                     <span className="font-bold">{r.full_name}</span>
+                    <SiteTag site={r.site} />
                     <span className="text-xs text-muted">{new Date(r.created_at).toLocaleString("tr-TR", { dateStyle: "medium", timeStyle: "short" })}</span>
                     {r.handled ? <span className="rounded-full bg-green-50 px-2.5 py-0.5 text-xs font-bold text-green-700">Dönüş yapıldı</span>
                       : <span className="rounded-full bg-amber-50 px-2.5 py-0.5 text-xs font-bold text-amber-700">Bekliyor</span>}

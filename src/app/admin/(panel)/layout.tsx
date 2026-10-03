@@ -1,6 +1,7 @@
 import type { RowDataPacket } from "mysql2";
 import { requireAdmin } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { adminSite } from "@/lib/site-db";
 import { Sidebar } from "./Sidebar";
 
 export const dynamic = "force-dynamic";
@@ -19,7 +20,7 @@ export default async function PanelLayout({ children }: { children: React.ReactN
   } catch {} // tablo ilk talep geldiğinde oluşur
   return (
     <div className="min-h-screen bg-slate-50">
-      <Sidebar name={admin.name} email={admin.email} pendingOrders={pending} openLeads={leads} />
+      <Sidebar name={admin.name} email={admin.email} pendingOrders={pending} openLeads={leads} site={await adminSite()} />
       <main className="px-4 py-6 md:px-8 md:py-8 lg:ml-64">
         <div className="mx-auto w-full max-w-6xl">{children}</div>
       </main>

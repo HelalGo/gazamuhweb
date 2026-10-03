@@ -1,6 +1,8 @@
 import type { RowDataPacket } from "mysql2";
 import { db } from "./db";
 import { slides as defaultSlides } from "./home";
+import { ensureSiteColumn } from "./site-db";
+import { SITE_KEY } from "./sites";
 import type { CampaignLayout } from "./layouts";
 
 const dbOn = () => !!process.env.DB_HOST && !process.env.DB_HOST.startsWith("BURAYA");
@@ -35,7 +37,8 @@ type SlideRow = RowDataPacket & {
 export async function getSlides(): Promise<HeroSlide[]> {
   if (!dbOn()) return fallbackSlides();
   try {
-    const [rows] = await db().query<SlideRow[]>("SELECT * FROM hero_slides WHERE active = 1 ORDER BY sort_order, id");
+    await ensureSiteColumn("hero_slides");
+    const [rows] = await db().query<SlideRow[]>("SELECT * FROM hero_slides WHERE active = 1 AND site = ? ORDER BY sort_order, id", [SITE_KEY]);
     if (!rows.length) return fallbackSlides();
     return rows.map((r) => ({
       id: String(r.id), image: r.image_url, mobileImage: r.mobile_image_url, overlay: !!r.overlay,
@@ -58,7 +61,8 @@ export async function getTiles(): Promise<Tile[]> {
   }));
   if (!dbOn()) return fallback;
   try {
-    const [rows] = await db().query<RowDataPacket[]>("SELECT * FROM showcase_tiles WHERE active = 1 ORDER BY sort_order, id");
+    await ensureSiteColumn("showcase_tiles");
+    const [rows] = await db().query<RowDataPacket[]>("SELECT * FROM showcase_tiles WHERE active = 1 AND site = ? ORDER BY sort_order, id", [SITE_KEY]);
     return rows.length ? rows.map((r) => ({ id: String(r.id), image: r.image_url, title: r.title, url: r.url ?? "/urunler" })) : fallback;
   } catch {
     return fallback;
@@ -68,7 +72,8 @@ export async function getTiles(): Promise<Tile[]> {
 export async function getCampaigns(): Promise<CampaignBlock[]> {
   if (!dbOn()) return [];
   try {
-    const [rows] = await db().query<RowDataPacket[]>("SELECT * FROM campaign_blocks WHERE active = 1 ORDER BY sort_order, id");
+    await ensureSiteColumn("campaign_blocks");
+    const [rows] = await db().query<RowDataPacket[]>("SELECT * FROM campaign_blocks WHERE active = 1 AND site = ? ORDER BY sort_order, id", [SITE_KEY]);
     return rows.map((r) => ({
       id: String(r.id), title: r.title ?? "", layout: r.layout as CampaignLayout,
       items: typeof r.items === "string" ? JSON.parse(r.items) : r.items,
@@ -124,7 +129,9 @@ export async function getOnboarding(): Promise<OnboardingSlide[]> {
   if (!dbOn()) return [];
   try {
     await ensureOnboardingTable();
-    const [rows] = await db().query<RowDataPacket[]>("SELECT * FROM app_onboarding WHERE active = 1 AND image_url IS NOT NULL ORDER BY sort_order, id");
+    await ensureSiteColumn("app_onboarding");
+    const [rows] = await db().query<RowDataPacket[]>(
+      "SELECT * FROM app_onboarding WHERE active = 1 AND site = ? AND image_url IS NOT NULL ORDER BY sort_order, id", [SITE_KEY]);
     return rows.map((r) => ({ id: String(r.id), title: r.title, text: r.text ?? "", image: r.image_url }));
   } catch (e) {
     console.error("[cms] tanıtım ekranları okunamadı:", (e as Error).message);
@@ -153,7 +160,9 @@ export async function getAppBanners(): Promise<AppBanner[]> {
   if (!dbOn()) return [];
   try {
     await ensureAppBannerTable();
-    const [rows] = await db().query<RowDataPacket[]>("SELECT * FROM app_banners WHERE active = 1 AND image_url IS NOT NULL ORDER BY sort_order, id");
+    await ensureSiteColumn("app_banners");
+    const [rows] = await db().query<RowDataPacket[]>(
+      "SELECT * FROM app_banners WHERE active = 1 AND site = ? AND image_url IS NOT NULL ORDER BY sort_order, id", [SITE_KEY]);
     return rows.map((r) => ({ id: String(r.id), image: r.image_url, title: r.title ?? "", text: r.text ?? "", target: r.target ?? "" }));
   } catch (e) {
     console.error("[cms] uygulama bannerları okunamadı:", (e as Error).message);

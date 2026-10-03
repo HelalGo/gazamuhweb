@@ -1,9 +1,12 @@
 "use server";
 import type { ResultSetHeader, RowDataPacket } from "mysql2";
+import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { requireAdmin } from "@/lib/auth";
 import { ensureAppBannerTable, ensureBrandTable, ensureOnboardingTable } from "@/lib/cms";
 import { db } from "@/lib/db";
+import { ADMIN_SITE_COOKIE, adminSite, ensureSiteColumn, type SiteTable } from "@/lib/site-db";
+import { isSiteKey } from "@/lib/sites";
 import { APP_BANNER_REQ, BRAND_REQ, CAMPAIGN_LAYOUTS, ONBOARD_REQ, HERO_MOBILE_REQ, HERO_REQ, TILE_REQ, safeUrl, type CampaignLayout } from "@/lib/layouts";
 import { removeImage, saveImage, type Req } from "@/lib/uploads";
 
@@ -15,6 +18,26 @@ type Table = "hero_slides" | "showcase_tiles" | "campaign_blocks" | "brand_logos
 async function nextOrder(table: Table) {
   const [r] = await db().query<RowDataPacket[]>(`SELECT COALESCE(MAX(sort_order), 0) + 1 AS n FROM ${table}`);
   return r[0].n as number;
+}
+
+// Yeni kayıt: sıra numarası ve (markaya özel tablolarda) admin menüsünde seçili marka
+async function newRow(table: Table) {
+  const order = { sort_order: await nextOrder(table) };
+  if (table === "brand_logos") return order;
+  await ensureSiteColumn(table);
+  return { ...order, site: await adminSite() };
+}
+
+/* ---------- Admin menüsündeki marka seçimi (GAZ-A / Kombi Klima GO) ---------- */
+export async function setAdminSite(f: FormData) {
+  await requireAdmin();
+  const site = f.get("site");
+  if (isSiteKey(site)) {
+    (await cookies()).set(ADMIN_SITE_COOKIE, site, { path: "/admin", httpOnly: true, sameSite: "lax", secure: process.env.NODE_ENV === "production", maxAge: 60 * 60 * 24 * 365 });
+  }
+  // düzenleme sayfasındayken marka değişirse o bölümün listesine dönülür (kayıt diğer markaya ait olabilir)
+  const back = String(f.get("back") ?? "");
+  redirect(/^\/admin(\/[\w-]+)?$/.test(back) ? back : "/admin");
 }
 
 // Dosya seçildiyse doğrular ve kaydeder. Seçilmediyse null döner.
@@ -54,7 +77,7 @@ export async function saveSlide(f: FormData) {
   if (f.get("remove_mobile") && !mobile) { await removeImage(old[0]?.mobile_image_url); v.mobile_image_url = null; }
 
   if (id) await db().query("UPDATE hero_slides SET ? WHERE id = ?", [v, id]);
-  else await db().query("INSERT INTO hero_slides SET ?", [{ ...v, sort_order: await nextOrder("hero_slides") }]);
+  else await db().query("INSERT INTO hero_slides SET ?", [{ ...v, ...(await newRow("hero_slides")) }]);
   redirect("/admin/slider?saved=1");
 }
 
@@ -74,7 +97,7 @@ export async function saveTile(f: FormData) {
   if (image) { v.image_url = image; await removeImage(old[0]?.image_url); }
 
   if (id) await db().query("UPDATE showcase_tiles SET ? WHERE id = ?", [v, id]);
-  else await db().query("INSERT INTO showcase_tiles SET ?", [{ ...v, sort_order: await nextOrder("showcase_tiles") }]);
+  else await db().query("INSERT INTO showcase_tiles SET ?", [{ ...v, ...(await newRow("showcase_tiles")) }]);
   redirect("/admin/vitrin?saved=1");
 }
 
@@ -95,7 +118,7 @@ export async function saveBrand(f: FormData) {
   if (image) { v.image_url = image; await removeImage(old[0]?.image_url); }
 
   if (id) await db().query("UPDATE brand_logos SET ? WHERE id = ?", [v, id]);
-  else await db().query("INSERT INTO brand_logos SET ?", [{ ...v, sort_order: await nextOrder("brand_logos") }]);
+  else await db().query("INSERT INTO brand_logos SET ?", [{ ...v, ...(await newRow("brand_logos")) }]);
   redirect("/admin/markalar?saved=1");
 }
 
@@ -116,7 +139,7 @@ export async function saveOnboarding(f: FormData) {
   if (image) { v.image_url = image; await removeImage(old[0]?.image_url); }
 
   if (id) await db().query("UPDATE app_onboarding SET ? WHERE id = ?", [v, id]);
-  else await db().query("INSERT INTO app_onboarding SET ?", [{ ...v, sort_order: await nextOrder("app_onboarding") }]);
+  else await db().query("INSERT INTO app_onboarding SET ?", [{ ...v, ...(await newRow("app_onboarding")) }]);
   redirect("/admin/uygulama-tanitim?saved=1");
 }
 
@@ -144,7 +167,7 @@ export async function saveAppBanner(f: FormData) {
   if (image) { v.image_url = image; await removeImage(old[0]?.image_url); }
 
   if (id) await db().query("UPDATE app_banners SET ? WHERE id = ?", [v, id]);
-  else await db().query("INSERT INTO app_banners SET ?", [{ ...v, sort_order: await nextOrder("app_banners") }]);
+  else await db().query("INSERT INTO app_banners SET ?", [{ ...v, ...(await newRow("app_banners")) }]);
   redirect("/admin/uygulama-banner?saved=1");
 }
 
@@ -175,7 +198,7 @@ export async function saveCampaign(f: FormData) {
 
   const v = { title: str(f, "title", 120), layout, items: JSON.stringify(items), active: f.get("active") ? 1 : 0 };
   if (id) await db().query("UPDATE campaign_blocks SET ? WHERE id = ?", [v, id]);
-  else await db().query("INSERT INTO campaign_blocks SET ?", [{ ...v, sort_order: await nextOrder("campaign_blocks") }]);
+  else await db().query("INSERT INTO campaign_blocks SET ?", [{ ...v, ...(await newRow("campaign_blocks")) }]);
   redirect("/admin/kampanyalar?saved=1");
 }
 
@@ -210,7 +233,12 @@ export async function moveItem(f: FormData) {
   if (!isTable(table)) return;
   const id = Number(f.get("id"));
   const dir = f.get("dir") === "up" ? -1 : 1;
-  const [rows] = await db().query<RowDataPacket[]>(`SELECT id FROM ${table} ORDER BY sort_order, id`);
+  // markaya özel tablolarda yalnızca aynı markanın kayıtları arasında sıralanır
+  const own = table !== "brand_logos";
+  if (own) await ensureSiteColumn(table as SiteTable);
+  const [rows] = await db().query<RowDataPacket[]>(
+    own ? `SELECT id FROM ${table} WHERE site = (SELECT site FROM ${table} WHERE id = ?) ORDER BY sort_order, id` : `SELECT id FROM ${table} ORDER BY sort_order, id`,
+    own ? [id] : []);
   const ids = rows.map((r) => r.id as number);
   const i = ids.indexOf(id);
   const j = i + dir;

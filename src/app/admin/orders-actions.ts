@@ -9,6 +9,7 @@ import { orderStatusMail, statusMailFor } from "@/lib/mails";
 import { isStatus, orderNo, trackingUrl } from "@/lib/orders";
 import { ensurePricingTables } from "@/lib/pricing";
 import { pushToUser } from "@/lib/push";
+import { SITE_KEY, siteOf } from "@/lib/sites";
 
 // Durum değişince müşteriye e-posta ve (uygulamayı kullanıyorsa) push bildirimi gider.
 // "Kargoya verildi" seçilirken kargo firması ve takip numarası da kaydedilebilir.
@@ -21,6 +22,8 @@ export async function updateOrderStatus(f: FormData) {
   const [rows] = await db().query<RowDataPacket[]>("SELECT * FROM orders WHERE id = ?", [id]);
   const o = rows[0];
   if (!o) return;
+  // diğer markanın siparişi o markanın panelinden güncellenir (e-posta doğru markadan gitsin)
+  if (siteOf(o.site) !== SITE_KEY) redirect(`/admin/orders/${id}`);
   const cargo = String(f.get("cargo_company") ?? "").trim().slice(0, 60) || o.cargo_company || null;
   const tracking = String(f.get("tracking_no") ?? "").trim().slice(0, 80) || o.tracking_no || null;
   const v: Record<string, unknown> = { status, cargo_company: cargo, tracking_no: tracking };

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ArrowDown, ArrowUp, CircleAlert, CircleCheck, Pencil, Plus, Trash2 } from "lucide-react";
 import { deleteItem, moveItem, toggleItem } from "../cms-actions";
 import type { Req } from "@/lib/uploads";
+import { SITES, siteOf, type SiteKey } from "@/lib/sites";
 import { ConfirmButton } from "./_client";
 
 export const field = "w-full rounded-xl border border-border bg-white px-4 py-2.5 text-sm outline-none transition focus:border-accent focus:ring-4 focus:ring-accent/15";
@@ -144,4 +145,15 @@ export function PageHead({ title, sub, newHref, newLabel, back, children }: {
       </div>
     </div>
   );
+}
+
+// İçerik sayfalarında hangi markanın kayıtlarının listelendiğini gösterir (marka menüden değiştirilir)
+export function SiteBadge({ site }: { site: SiteKey }) {
+  return <span className="rounded-full bg-primary/10 px-3 py-1.5 text-sm font-bold text-primary" title="Marka menünün üstünden değiştirilir">{SITES[site].label}</span>;
+}
+
+// Sipariş ve taleplerin hangi siteden (ya da onun uygulamasından) geldiği
+export function SiteTag({ site }: { site: unknown }) {
+  const k = siteOf(site);
+  return <span className={`rounded-full px-2.5 py-0.5 text-xs font-bold ${k === "kombiklimago" ? "bg-orange-50 text-orange-700" : "bg-blue-50 text-blue-700"}`}>{SITES[k].label}</span>;
 }

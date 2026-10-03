@@ -3,6 +3,8 @@ import { db } from "./db";
 import { adminInbox, mailConfigured, sendMail } from "./mail";
 import { leadAdminMail, leadCustomerMail } from "./mails";
 import { WHATSAPP_NUMBER } from "./site";
+import { ensureSiteColumn } from "./site-db";
+import { SITES, SITE_KEY } from "./sites";
 import { tl } from "./utils";
 
 export type Lead = {
@@ -38,9 +40,10 @@ async function ensureTable() {
 
 export async function saveLead(l: Lead) {
   await ensureTable();
+  await ensureSiteColumn("leads");
   const [res] = await db().query<ResultSetHeader>(
-    "INSERT INTO leads (product_id, product_name, full_name, phone, email, city, message) VALUES (?,?,?,?,?,?,?)",
-    [l.product?.id ?? null, l.product?.name ?? null, l.fullName, l.phone, l.email || null, l.city || null, l.message || null]
+    "INSERT INTO leads (product_id, product_name, full_name, phone, email, city, message, site) VALUES (?,?,?,?,?,?,?,?)",
+    [l.product?.id ?? null, l.product?.name ?? null, l.fullName, l.phone, l.email || null, l.city || null, l.message || null, SITE_KEY]
   );
   return res.insertId;
 }
@@ -72,7 +75,8 @@ async function sendWhatsApp(l: Lead) {
   const key = process.env.CALLMEBOT_APIKEY;
   if (!key || key.startsWith("BURAYA")) return false;
   const phone = process.env.CALLMEBOT_PHONE || `+${WHATSAPP_NUMBER}`;
-  const text = ["*Yeni bilgi talebi*", ...lines(l)].join("\n");
+  // WhatsApp numarası iki sitede ortak: başlıkta talebin hangi markadan geldiği yazar
+  const text = [`*Yeni bilgi talebi · ${SITES[SITE_KEY].label}*`, ...lines(l)].join("\n");
   const url = `https://api.callmebot.com/whatsapp.php?phone=${encodeURIComponent(phone)}&text=${encodeURIComponent(text)}&apikey=${encodeURIComponent(key)}`;
   const res = await fetch(url, { signal: AbortSignal.timeout(15_000) });
   return res.ok;

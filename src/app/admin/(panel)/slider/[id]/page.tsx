@@ -1,10 +1,12 @@
 import { notFound } from "next/navigation";
 import type { RowDataPacket } from "mysql2";
 import { db } from "@/lib/db";
+import { adminSite } from "@/lib/site-db";
+import { siteOf } from "@/lib/sites";
 import { HERO_MOBILE_REQ, HERO_REQ } from "@/lib/layouts";
 import { saveSlide } from "../../../cms-actions";
 import { SubmitButton } from "../../_client";
-import { DeleteForm, ImagePreview, Label, Notice, PageHead, SizeBadge, Toggle, btnPrimary, field, fileCls } from "../../_ui";
+import { DeleteForm, ImagePreview, Label, Notice, PageHead, SizeBadge, Toggle, btnPrimary, field, fileCls, SiteBadge } from "../../_ui";
 
 export default async function SlideForm({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ err?: string }> }) {
   const { id } = await params;
@@ -18,7 +20,7 @@ export default async function SlideForm({ params, searchParams }: { params: Prom
   }
   return (
     <div className="mx-auto max-w-3xl">
-      <PageHead title={isNew ? "Yeni Slayt" : "Slaytı Düzenle"} back={{ href: "/admin/slider", label: "Slider" }} />
+      <PageHead title={isNew ? "Yeni Slayt" : "Slaytı Düzenle"} back={{ href: "/admin/slider", label: "Slider" }}><SiteBadge site={isNew ? await adminSite() : siteOf(r?.site)} /></PageHead>
       <Notice err={err} />
       <form action={saveSlide} className="space-y-6 rounded-2xl border border-border bg-white p-5 shadow-sm md:p-6">
         {!isNew && <input type="hidden" name="id" value={id} />}

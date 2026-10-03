@@ -1,10 +1,12 @@
 import { notFound } from "next/navigation";
 import type { RowDataPacket } from "mysql2";
 import { db } from "@/lib/db";
+import { adminSite } from "@/lib/site-db";
+import { siteOf } from "@/lib/sites";
 import { TILE_REQ } from "@/lib/layouts";
 import { saveTile } from "../../../cms-actions";
 import { SubmitButton } from "../../_client";
-import { DeleteForm, ImagePreview, Label, Notice, PageHead, SizeBadge, Toggle, btnPrimary, field, fileCls } from "../../_ui";
+import { DeleteForm, ImagePreview, Label, Notice, PageHead, SizeBadge, Toggle, btnPrimary, field, fileCls, SiteBadge } from "../../_ui";
 
 export default async function TileForm({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ err?: string }> }) {
   const { id } = await params;
@@ -18,7 +20,7 @@ export default async function TileForm({ params, searchParams }: { params: Promi
   }
   return (
     <div className="mx-auto max-w-2xl">
-      <PageHead title={isNew ? "Yeni Kart" : "Kartı Düzenle"} back={{ href: "/admin/vitrin", label: "Vitrin Kartları" }} />
+      <PageHead title={isNew ? "Yeni Kart" : "Kartı Düzenle"} back={{ href: "/admin/vitrin", label: "Vitrin Kartları" }}><SiteBadge site={isNew ? await adminSite() : siteOf(r?.site)} /></PageHead>
       <Notice err={err} />
       <form action={saveTile} className="space-y-5 rounded-2xl border border-border bg-white p-5 shadow-sm md:p-6">
         {!isNew && <input type="hidden" name="id" value={id} />}

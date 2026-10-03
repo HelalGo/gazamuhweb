@@ -6,7 +6,9 @@ import { usePathname } from "next/navigation";
 import {
   Award, Bell, ExternalLink, MailCheck, Users, GalleryHorizontal, ImagePlus, Inbox, LayoutDashboard, LayoutGrid, LogOut, Megaphone, Menu, MessageSquare, Newspaper, Package, ShoppingBag, Smartphone, SunSnow, TicketPercent, Truck, X,
 } from "lucide-react";
+import { SITES, type SiteKey } from "@/lib/sites";
 import { logout } from "../actions";
+import { setAdminSite } from "../cms-actions";
 
 const groups = [
   { title: "", items: [{ href: "/admin", label: "Genel Bakış", icon: LayoutDashboard, exact: true }] },
@@ -53,7 +55,7 @@ const groups = [
   },
 ] as const;
 
-export function Sidebar({ name, email, pendingOrders, openLeads }: { name: string; email: string; pendingOrders: number; openLeads: number }) {
+export function Sidebar({ name, email, pendingOrders, openLeads, site }: { name: string; email: string; pendingOrders: number; openLeads: number; site: SiteKey }) {
   const badges: Record<string, number> = { orders: pendingOrders, leads: openLeads };
   const path = usePathname();
   const [open, setOpen] = useState(false);
@@ -94,6 +96,22 @@ export function Sidebar({ name, email, pendingOrders, openLeads }: { name: strin
       <div className="flex h-16 items-center justify-between px-5">
         <Link href="/admin" className="rounded-lg bg-white px-2.5 py-1.5"><Image src="/brand/logo.png" alt="GAZ-A" width={242} height={58} className="h-7 w-auto" /></Link>
         <button onClick={() => setOpen(false)} className="grid h-9 w-9 place-items-center rounded-lg hover:bg-white/10 lg:hidden" aria-label="Menüyü kapat"><X size={20} /></button>
+      </div>
+      {/* Markaya özel içerikler (slider, vitrin, kampanyalar, uygulama bannerları ve tanıtımı) seçili marka için düzenlenir */}
+      <div className="px-3 pt-1">
+        <p className="mb-2 px-3 text-[11px] font-bold uppercase tracking-widest text-white/40">Düzenlenen marka</p>
+        <div className="grid grid-cols-2 gap-1 rounded-xl bg-white/10 p-1">
+          {(Object.keys(SITES) as SiteKey[]).map((k) => (
+            <form key={k} action={setAdminSite}>
+              <input type="hidden" name="site" value={k} />
+              <input type="hidden" name="back" value={path.split("/").slice(0, 3).join("/")} />
+              <button aria-pressed={site === k}
+                className={`w-full rounded-lg px-2 py-2 text-xs font-bold transition ${site === k ? "bg-white text-[#0b1d45] shadow" : "text-white/70 hover:bg-white/10 hover:text-white"}`}>
+                {SITES[k].label}
+              </button>
+            </form>
+          ))}
+        </div>
       </div>
       {nav}
       <div className="space-y-1 border-t border-white/10 p-3">

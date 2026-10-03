@@ -109,37 +109,57 @@ export async function sendPush(tokens: string[], m: PushMessage) {
   let ok = 0, failed = 0;
   const image = m.image ? (m.image.startsWith("http") ? m.image : SITE_URL + m.image) : undefined;
   for (let i = 0; i < list.length; i += 100) {
-    const chunk = list.slice(i, i + 100);
-    const payload = chunk.map((to) => ({
-      to, title: m.title, body: m.body, sound: "default", channelId: "default",
-      data: { url: m.url ?? "" },
-      ...(image ? { richContent: { image }, mutableContent: true } : {}),
-    }));
-    try {
-      const res = await fetch("https://exp.host/--/api/v2/push/send", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json", Accept: "application/json",
-          ...(process.env.EXPO_ACCESS_TOKEN ? { Authorization: `Bearer ${process.env.EXPO_ACCESS_TOKEN}` } : {}),
-        },
-        body: JSON.stringify(payload),
-        signal: AbortSignal.timeout(20_000),
-      });
-      const json = (await res.json().catch(() => ({}))) as { data?: { status: string; details?: { error?: string } }[] };
-      const data = json.data ?? [];
-      const dead: string[] = [];
-      chunk.forEach((t, k) => {
-        const r = data[k];
-        if (r?.status === "ok") ok++;
-        else { failed++; if (r?.details?.error === "DeviceNotRegistered") dead.push(t); }
-      });
-      if (dead.length) await db().query("UPDATE push_tokens SET active = 0 WHERE token IN (?)", [dead]);
-    } catch (e) {
-      console.error("[push]", (e as Error).message);
-      failed += chunk.length;
-    }
+    const r = await sendChunk(list.slice(i, i + 100), m, image);
+    ok += r.ok; failed += r.failed;
   }
   return { sent: list.length, ok, failed };
+}
+
+// push_tokens iki uygulamada (GAZ-A Mühendislik ve Kombi Klima GO) ortaktır; ayrı Expo projelerinin token'ları aynı
+// isteğe düşerse Expo tüm isteği PUSH_TOO_MANY_EXPERIENCE_IDS ile reddeder. O durumda her proje ayrı gönderilir.
+async function sendChunk(chunk: string[], m: PushMessage, image?: string): Promise<{ ok: number; failed: number }> {
+  let ok = 0, failed = 0;
+  if (!chunk.length) return { ok, failed };
+  const payload = chunk.map((to) => ({
+    to, title: m.title, body: m.body, sound: "default", channelId: "default",
+    data: { url: m.url ?? "" },
+    ...(image ? { richContent: { image }, mutableContent: true } : {}),
+  }));
+  try {
+    const res = await fetch("https://exp.host/--/api/v2/push/send", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json", Accept: "application/json",
+        ...(process.env.EXPO_ACCESS_TOKEN ? { Authorization: `Bearer ${process.env.EXPO_ACCESS_TOKEN}` } : {}),
+      },
+      body: JSON.stringify(payload),
+      signal: AbortSignal.timeout(20_000),
+    });
+    const json = (await res.json().catch(() => ({}))) as {
+      data?: { status: string; details?: { error?: string } }[];
+      errors?: { code?: string; details?: Record<string, string[]> }[];
+    };
+    const groups = Object.values(json.errors?.find((e) => e.code === "PUSH_TOO_MANY_EXPERIENCE_IDS")?.details ?? {});
+    if (groups.length > 1) {
+      for (const g of groups) {
+        const r = await sendChunk(g.filter((t) => chunk.includes(t)), m, image);
+        ok += r.ok; failed += r.failed;
+      }
+      return { ok, failed };
+    }
+    const data = json.data ?? [];
+    const dead: string[] = [];
+    chunk.forEach((t, k) => {
+      const r = data[k];
+      if (r?.status === "ok") ok++;
+      else { failed++; if (r?.details?.error === "DeviceNotRegistered") dead.push(t); }
+    });
+    if (dead.length) await db().query("UPDATE push_tokens SET active = 0 WHERE token IN (?)", [dead]);
+  } catch (e) {
+    console.error("[push]", (e as Error).message);
+    failed += chunk.length;
+  }
+  return { ok, failed };
 }
 
 // Admin panelinden toplu bildirim: kampanya bildirimlerini kapatanlara gitmez

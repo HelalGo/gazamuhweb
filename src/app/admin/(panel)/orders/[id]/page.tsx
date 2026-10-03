@@ -4,31 +4,44 @@ import { BadgeCheck, Clock, ExternalLink, Landmark, Mail, MapPin, Phone, Truck }
 import { db } from "@/lib/db";
 import { CARGO, REVIEW_STATUSES, STATUS, isStatus, orderNo, trackingUrl } from "@/lib/orders";
 import { ensurePricingTables } from "@/lib/pricing";
+import { ensureSiteColumn } from "@/lib/site-db";
+import { SITES, SITE_KEY, siteOf } from "@/lib/sites";
 import { bank, ibanGroups } from "@/lib/site";
 import { OrderTotals } from "@/components/OrderTotals";
 import { tl } from "@/lib/utils";
 import { updateOrderStatus } from "../../../orders-actions";
-import { Notice, PageHead, btnPrimary, card, field } from "../../_ui";
+import { Notice, PageHead, SiteTag, btnPrimary, card, field } from "../../_ui";
 
 export default async function AdminOrder({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ saved?: string }> }) {
   const id = Number((await params).id);
   const { saved } = await searchParams;
   await ensurePricingTables();
+  await ensureSiteColumn("orders");
   const [rows] = await db().query<RowDataPacket[]>("SELECT * FROM orders WHERE id = ?", [id]);
   const o = rows[0];
   if (!o) notFound();
   const [items] = await db().query<RowDataPacket[]>("SELECT name, price, qty FROM order_items WHERE order_id = ?", [id]);
   const st = isStatus(o.status) ? o.status : "pending";
+  // Diğer markanın siparişi: durum e-postası o markanın adıyla ve posta kutusundan gitsin diye orada güncellenir
+  const site = siteOf(o.site);
+  const foreign = site !== SITE_KEY;
 
   return (
     <>
       <PageHead title={`Sipariş ${orderNo(id)}`} sub={new Date(o.created_at).toLocaleString("tr-TR", { dateStyle: "long", timeStyle: "short" })} back={{ href: "/admin/orders", label: "Siparişler" }}>
+        <SiteTag site={site} />
         <span className={`rounded-full px-3 py-1.5 text-sm font-bold ${STATUS[st].cls}`}>{STATUS[st].label}</span>
       </PageHead>
       <Notice saved={saved} text="Sipariş durumu güncellendi." />
+      {foreign && (
+        <p className="mb-6 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+          Bu sipariş <strong>{SITES[site].label}</strong> üzerinden verildi. Müşteriye giden e-postaların o markadan gitmesi için durumunu{" "}
+          <a href={`${SITES[site].url}/admin/orders/${id}`} target="_blank" rel="noopener noreferrer" className="font-bold underline">{SITES[site].label} admin panelinden</a> güncelleyin.
+        </p>
+      )}
 
       <div className="grid gap-6 lg:grid-cols-3">
-        <div className="space-y-6 lg:col-span-2">
+        <fieldset disabled={foreign} className={`min-w-0 space-y-6 lg:col-span-2 ${foreign ? "[&_form]:opacity-50" : ""}`}>
           {/* Ödeme: havale / EFT */}
           <section className={card}>
             <h2 className="mb-3 flex items-center gap-2 font-bold"><Landmark size={18} className="text-primary" />Ödeme · Havale / EFT</h2>
@@ -100,7 +113,7 @@ export default async function AdminOrder({ params, searchParams }: { params: Pro
             <OrderTotals o={o} />
             <p className="mt-2 flex justify-between border-t border-border pt-4 text-lg font-extrabold"><span>Toplam</span><span className="text-primary">{tl(Number(o.total))}</span></p>
           </section>
-        </div>
+        </fieldset>
 
         <section className={`${card} h-fit space-y-3 text-sm`}>
           <h2 className="font-bold">Müşteri</h2>

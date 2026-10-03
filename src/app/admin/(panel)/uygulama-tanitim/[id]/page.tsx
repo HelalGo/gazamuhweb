@@ -3,10 +3,12 @@ import { ArrowRight } from "lucide-react";
 import type { RowDataPacket } from "mysql2";
 import { ensureOnboardingTable } from "@/lib/cms";
 import { db } from "@/lib/db";
+import { adminSite } from "@/lib/site-db";
+import { siteOf } from "@/lib/sites";
 import { ONBOARD_REQ } from "@/lib/layouts";
 import { saveOnboarding } from "../../../cms-actions";
 import { SubmitButton } from "../../_client";
-import { DeleteForm, Label, Notice, PageHead, SizeBadge, Toggle, btnPrimary, field, fileCls } from "../../_ui";
+import { DeleteForm, Label, Notice, PageHead, SizeBadge, Toggle, btnPrimary, field, fileCls, SiteBadge } from "../../_ui";
 
 export default async function OnboardingForm({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ err?: string }> }) {
   const { id } = await params;
@@ -22,7 +24,7 @@ export default async function OnboardingForm({ params, searchParams }: { params:
 
   return (
     <div className="mx-auto max-w-4xl">
-      <PageHead title={isNew ? "Yeni Tanıtım Sayfası" : "Tanıtım Sayfasını Düzenle"} back={{ href: "/admin/uygulama-tanitim", label: "Uygulama Tanıtımı" }} />
+      <PageHead title={isNew ? "Yeni Tanıtım Sayfası" : "Tanıtım Sayfasını Düzenle"} back={{ href: "/admin/uygulama-tanitim", label: "Uygulama Tanıtımı" }}><SiteBadge site={isNew ? await adminSite() : siteOf(r?.site)} /></PageHead>
       <Notice err={err} />
       <div className="grid gap-6 md:grid-cols-[1fr_260px]">
         <form action={saveOnboarding} className="space-y-5 rounded-2xl border border-border bg-white p-5 shadow-sm md:p-6">
